@@ -1,0 +1,11 @@
+name: Economy
+main: com.mengcraft.economy.Main
+version: ${project.version}
+author: caoli5288
+
+commands:
+  economy:
+    aliases: [eco, bal, balance, money]
+    description: None.
+
+softdepend: [Vault]

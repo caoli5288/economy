@@ -1,0 +1,6 @@
+vault:
+  enable: true
+  unit:
+    plural: '金币'
+    singular: '金币'
+  scale: 2
