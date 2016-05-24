@@ -1,6 +1,5 @@
 package com.mengcraft.economy;
 
-import com.avaje.ebean.EbeanServer;
 import com.mengcraft.economy.entity.User;
 import com.mengcraft.economy.lib.Cache;
 import org.bukkit.OfflinePlayer;
@@ -18,11 +17,9 @@ public class MoneyManager {
 
     private final Map<UUID, Cache<User>> cache = new ConcurrentHashMap<>();
     private final Main main;
-    private final EbeanServer db;
 
     public MoneyManager(Main main) {
         this.main = main;
-        db = main.getDatabase();
     }
 
     private Cache<User> getUserCache(OfflinePlayer p) {
@@ -30,18 +27,7 @@ public class MoneyManager {
         if (cache.containsKey(p.getUniqueId())) {
             cached = cache.get(p.getUniqueId());
         } else {
-            cached = new Cache<>(() -> {
-                User user;
-                User fetched = db.find(User.class, p.getUniqueId());
-                if (fetched == null) {
-                    user = db.createEntityBean(User.class);
-                    user.setName(p.getName());
-                    user.setId(p.getUniqueId());
-                } else {
-                    user = fetched;
-                }
-                return user;
-            });
+            cached = new Cache<>(new CacheProvider(main, p));
             cached.setExpire(300000);
             cache.put(p.getUniqueId(), cached);
         }
@@ -52,12 +38,11 @@ public class MoneyManager {
         Cache<User> cache = getUserCache(p);
         User user = cache.get(true);
         user.setValue(round(v));
-        db.save(user);
+        main.getDatabase().save(user);
     }
 
     public double get(OfflinePlayer p) {
-        Cache<User> cached = getUserCache(p);
-        User user = cached.get();
+        User user = getUserCache(p).get();
         return user == null ? 0 : user.getValue();
     }
 
@@ -68,60 +53,56 @@ public class MoneyManager {
     }
 
     public void give(OfflinePlayer p, double value) {
-        db.beginTransaction();
+        main.getDatabase().beginTransaction();
         try {
-            Cache<User> cached = getUserCache(p);
-            User user = cached.get(true);
+            User user = getUserCache(p).get(true);
             user.setValue(user.getValue() + round(value));
-            db.save(user);
-            db.commitTransaction();
+            main.getDatabase().save(user);
+            main.getDatabase().commitTransaction();
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            db.endTransaction();
+            main.getDatabase().endTransaction();
         }
     }
 
     public boolean give(OfflinePlayer f, OfflinePlayer t, double v) {
-        db.beginTransaction();
+        main.getDatabase().beginTransaction();
         try {
-            Cache<User> cached = getUserCache(f);
-            User from = cached.get(true);
-            if (from.getValue() >= v) {
-                Cache<User> cached1 = getUserCache(t);
-                User to = cached1.get(true);
-                from.setValue(from.getValue() - v);
-                to.setValue(to.getValue() + v);
+            User from = getUserCache(f).get(true);
+            boolean b = from.getValue() >= v;
+            if (b) {
+                from.addValue(-v);
+                main.getDatabase().save(from);
 
-                db.save(from);
-                db.save(to);
-                db.commitTransaction();
-                return true;
+                User to = getUserCache(t).get(true);
+                to.addValue(v);
+
+                main.getDatabase().save(to);
+                main.getDatabase().commitTransaction();
             }
+            return b;
         } finally {
-            db.endTransaction();
+            main.getDatabase().endTransaction();
         }
-        return false;
     }
 
     public boolean take(OfflinePlayer p, double value) {
-        db.beginTransaction();
+        main.getDatabase().beginTransaction();
         try {
             Cache<User> cached = getUserCache(p);
             User user = cached.get(true);
             double rounded = round(value);
-            if (user.getValue() >= rounded) {
-                user.setValue(user.getValue() - rounded);
-                db.save(user);
-                db.commitTransaction();
-                return true;
+            boolean b = user.getValue() >= rounded;
+            if (b) {
+                user.addValue(-rounded);
+                main.getDatabase().save(user);
+                main.getDatabase().commitTransaction();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+            return b;
         } finally {
-            db.endTransaction();
+            main.getDatabase().endTransaction();
         }
-        return false;
     }
 
     public double round(double in) {
