@@ -4,6 +4,7 @@ import com.mengcraft.economy.db.EbeanHandler;
 import com.mengcraft.economy.db.EbeanManager;
 import com.mengcraft.economy.entity.User;
 import com.mengcraft.economy.lib.VaultHook;
+import org.bukkit.ChatColor;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -48,6 +49,11 @@ public class Main extends JavaPlugin {
         }
 
         getCommand("money").setExecutor(new Executor(this, manager));
+
+        getServer().getConsoleSender().sendMessage(new String[]{
+                ChatColor.GREEN + "梦梦家高性能服务器出租店",
+                ChatColor.GREEN + "shop105595113.taobao.com"
+        });
     }
 
     public int getScale() {
