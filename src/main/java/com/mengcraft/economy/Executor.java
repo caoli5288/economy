@@ -108,7 +108,7 @@ public class Executor implements CommandExecutor {
     }
 
     private boolean take(CommandSender p, Iterator<String> it) {
-        if (p.hasPermission("money.take") && it.hasNext()) {
+        if (p.hasPermission("money.admin") && it.hasNext()) {
             String next = it.next();
             if (it.hasNext()) {
                 double i = Double.parseDouble(it.next());
