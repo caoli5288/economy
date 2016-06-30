@@ -13,7 +13,7 @@ Economy plugin for bukkit based minecraft server.
     * Permission `money.admin` required for free pay.
 * /money take \<player> \<count>
     * Remove some money from target player's account.
-    * Permission `money.take` required.
+    * Permission `money.admin` required.
 * /money look \<player>
     * Look target player's account.
     * Permission `money.look` required.
