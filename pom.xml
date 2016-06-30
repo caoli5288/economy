@@ -12,6 +12,17 @@
         <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
 
+    <repositories>
+        <repository>
+            <id>repo-spigot</id>
+            <url>https://hub.spigotmc.org/nexus/content/groups/public/</url>
+        </repository>
+        <repository>
+            <id>repo-vault</id>
+            <url>http://nexus.theyeticave.net/content/repositories/pub_releases</url>
+        </repository>
+    </repositories>
+
     <dependencies>
         <dependency>
             <groupId>org.spigotmc</groupId>

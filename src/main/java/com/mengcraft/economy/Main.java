@@ -14,8 +14,25 @@ import org.bukkit.plugin.java.JavaPlugin;
  */
 public class Main extends JavaPlugin {
 
+    private MoneyManager manager;
     private String plural;
     private String singular;
+
+
+    @Override
+    public void onLoad() {
+        manager = new MoneyManager(this);
+        getServer().getServicesManager().register(
+                MoneyManager.class,
+                manager,
+                this,
+                ServicePriority.Normal
+        );
+        Plugin vault = getServer().getPluginManager().getPlugin("Vault");
+        if (vault != null) {
+            VaultHook.hook(this, manager);
+        }
+    }
 
     @Override
     public void onEnable() {
@@ -35,18 +52,6 @@ public class Main extends JavaPlugin {
 
         plural = getConfig().getString("vault.unit.plural");
         singular = getConfig().getString("vault.unit.singular");
-
-        MoneyManager manager = new MoneyManager(this);
-        getServer().getServicesManager().register(
-                MoneyManager.class,
-                manager,
-                this,
-                ServicePriority.Normal
-        );
-        Plugin vault = getServer().getPluginManager().getPlugin("Vault");
-        if (vault != null) {
-            VaultHook.hook(this, manager);
-        }
 
         getCommand("money").setExecutor(new Executor(this, manager));
 
