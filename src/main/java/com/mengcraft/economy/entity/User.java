@@ -41,8 +41,4 @@ public class User {
         this.name = name;
     }
 
-    public void addValue(double v) {
-        setValue(getValue() + v);
-    }
-
 }

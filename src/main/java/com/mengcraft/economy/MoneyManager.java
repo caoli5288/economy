@@ -56,7 +56,7 @@ public class MoneyManager {
         main.getDatabase().beginTransaction();
         try {
             User user = getUserCache(p).get(true);
-            user.setValue(user.getValue() + round(value));
+            user.setValue(new BigDecimal(user.getValue()).add(new BigDecimal(round(value))).setScale(main.getScale(), RoundingMode.HALF_DOWN).doubleValue());
             main.getDatabase().save(user);
             main.getDatabase().commitTransaction();
         } catch (Exception e) {
@@ -68,15 +68,16 @@ public class MoneyManager {
 
     public boolean give(OfflinePlayer f, OfflinePlayer t, double v) {
         main.getDatabase().beginTransaction();
+        double rounded = round(v);
         try {
             User from = getUserCache(f).get(true);
             boolean b = from.getValue() >= v;
             if (b) {
-                from.addValue(-v);
+                from.setValue(new BigDecimal(from.getValue()).subtract(new BigDecimal(rounded)).setScale(main.getScale(), RoundingMode.HALF_DOWN).doubleValue());
                 main.getDatabase().save(from);
 
                 User to = getUserCache(t).get(true);
-                to.addValue(v);
+                to.setValue(new BigDecimal(to.getValue()).add(new BigDecimal(rounded)).setScale(main.getScale(), RoundingMode.HALF_DOWN).doubleValue());
 
                 main.getDatabase().save(to);
                 main.getDatabase().commitTransaction();
@@ -95,7 +96,7 @@ public class MoneyManager {
             double rounded = round(value);
             boolean b = user.getValue() >= rounded;
             if (b) {
-                user.addValue(-rounded);
+                user.setValue(new BigDecimal(user.getValue()).subtract(new BigDecimal(rounded)).setScale(main.getScale(), RoundingMode.HALF_DOWN).doubleValue());
                 main.getDatabase().save(user);
                 main.getDatabase().commitTransaction();
             }
@@ -106,7 +107,7 @@ public class MoneyManager {
     }
 
     public double round(double in) {
-        return new BigDecimal(in).setScale(main.getScale(), RoundingMode.DOWN).doubleValue();
+        return new BigDecimal(in).setScale(main.getScale(), RoundingMode.HALF_DOWN).doubleValue();
     }
 
 }
