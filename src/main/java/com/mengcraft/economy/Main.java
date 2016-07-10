@@ -14,6 +14,7 @@ import org.bukkit.plugin.java.JavaPlugin;
  */
 public class Main extends JavaPlugin {
 
+    private final Backend backend = new Backend();
     private MoneyManager manager;
     private String plural;
     private String singular;
@@ -59,6 +60,18 @@ public class Main extends JavaPlugin {
                 ChatColor.GREEN + "梦梦家高性能服务器出租店",
                 ChatColor.GREEN + "shop105595113.taobao.com"
         });
+
+        backend.start();
+    }
+
+    @Override
+    public void onDisable() {
+        backend.shutdown();
+        try {
+            backend.join();
+        } catch (InterruptedException e) {
+            getLogger().info("interrupted");
+        }
     }
 
     public int getScale() {
@@ -70,7 +83,7 @@ public class Main extends JavaPlugin {
     }
 
     public void execute(Runnable j) {
-        getServer().getScheduler().runTaskAsynchronously(this, j);
+        backend.submit(j);
     }
 
     public String getPlural() {
