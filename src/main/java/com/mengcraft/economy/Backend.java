@@ -1,5 +1,7 @@
 package com.mengcraft.economy;
 
+import org.bukkit.Bukkit;
+
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Logger;
@@ -24,7 +26,8 @@ public class Backend extends Thread {
                     take.run();
                 }
             } catch (InterruptedException ignored) {
-                Logger.getLogger("Backend").info("interrupted");
+            } catch (Exception e) {// Log exception except interrupt.
+                Bukkit.getLogger().throwing("", "", e);
             }
         }
     }
