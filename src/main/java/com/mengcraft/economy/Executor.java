@@ -2,7 +2,6 @@ package com.mengcraft.economy;
 
 import com.mengcraft.economy.entity.User;
 import com.mengcraft.economy.lib.Cache;
-import com.mengcraft.economy.lib.Messenger;
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
@@ -24,7 +23,6 @@ public class Executor implements CommandExecutor {
     private final Cache<List<User>> top;
     private final Main main;
     private final MoneyManager manager;
-    private final Messenger messenger;
 
     public Executor(Main main, MoneyManager manager) {
         this.main = main;
@@ -34,7 +32,6 @@ public class Executor implements CommandExecutor {
                 .setMaxRows(20)
                 .findList());
         top.setExpire(3000000);
-        messenger = new Messenger(main);
     }
 
 
