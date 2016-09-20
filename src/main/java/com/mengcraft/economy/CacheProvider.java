@@ -21,16 +21,13 @@ public class CacheProvider implements Supplier<User> {
 
     @Override
     public User get() {
-        User user;
         User fetched = db.find(User.class, p.getUniqueId());
         if (fetched == null) {
-            user = db.createEntityBean(User.class);
-            user.setId(p.getUniqueId());
-            user.setName(p.getName());
-        } else {
-            user = fetched;
+            fetched = db.createEntityBean(User.class);
+            fetched.setId(p.getUniqueId());
+            fetched.setName(p.getName());
         }
-        return user;
+        return fetched;
     }
 
 }
