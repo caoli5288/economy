@@ -1,9 +1,10 @@
 package com.mengcraft.economy;
 
-import com.mengcraft.economy.db.EbeanHandler;
-import com.mengcraft.economy.db.EbeanManager;
 import com.mengcraft.economy.entity.User;
-import com.mengcraft.economy.lib.VaultHook;
+import com.mengcraft.economy.lib.VaultEconomy;
+import com.mengcraft.simpleorm.EbeanHandler;
+import com.mengcraft.simpleorm.EbeanManager;
+import net.milkbowl.vault.economy.Economy;
 import org.bukkit.ChatColor;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.ServicePriority;
@@ -15,23 +16,29 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class Main extends JavaPlugin {
 
     private final Backend backend = new Backend();
-    private MoneyManager manager;
+    private Manager manager;
     private String plural;
     private String singular;
 
 
     @Override
     public void onLoad() {
-        manager = new MoneyManager(this);
+        manager = new Manager(this);
         getServer().getServicesManager().register(
-                MoneyManager.class,
+                MyEconomy.class,
                 manager,
                 this,
                 ServicePriority.Normal
         );
         Plugin vault = getServer().getPluginManager().getPlugin("Vault");
         if (vault != null) {
-            VaultHook.hook(this, manager);
+            getServer().getServicesManager().register(
+                    Economy.class,
+                    new VaultEconomy(this, manager),
+                    this,
+                    ServicePriority.Highest
+            );
+            getLogger().info("Hook to vault!!!");
         }
     }
 

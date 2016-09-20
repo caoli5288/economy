@@ -22,9 +22,9 @@ public class Executor implements CommandExecutor {
 
     private final Cache<List<User>> top;
     private final Main main;
-    private final MoneyManager manager;
+    private final Manager manager;
 
-    public Executor(Main main, MoneyManager manager) {
+    public Executor(Main main, Manager manager) {
         this.main = main;
         this.manager = manager;
         top = new Cache<>(() -> main.getDatabase().find(User.class)
@@ -152,20 +152,21 @@ public class Executor implements CommandExecutor {
     }
 
     private void give(CommandSender p, OfflinePlayer j, double i) {
-        if (p instanceof Player && !p.hasPermission("money.admin")) {
-            main.execute(() -> {
-                if (manager.give(((Player) p), j, i)) {
+        main.execute(() -> {
+            main.getDatabase().beginTransaction();
+            try {// Console always has permission so never thr cast exception
+                if (p.hasPermission("money.admin") || manager.take(Player.class.cast(p), i)) {
+                    manager.give(j, i);
+                    main.getDatabase().commitTransaction();
                     p.sendMessage(ChatColor.GREEN + "操作成功");
-                } else {
-                    p.sendMessage(ChatColor.RED + "操作失败");
                 }
-            });
-        } else {
-            main.execute(() -> {
-                manager.give(j, i);
-            });
-            p.sendMessage(ChatColor.GREEN + "操作成功");
-        }
+            } catch (Exception e) {
+                main.getLogger().throwing("", "", e);
+                p.sendMessage(ChatColor.RED + "操作失败");
+            } finally {
+                main.getDatabase().endTransaction();
+            }
+        });
     }
 
     private boolean look(CommandSender p, Iterator<String> it) {

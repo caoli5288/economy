@@ -25,8 +25,8 @@ public class CacheProvider implements Supplier<User> {
         User fetched = db.find(User.class, p.getUniqueId());
         if (fetched == null) {
             user = db.createEntityBean(User.class);
-            user.setName(p.getName());
             user.setId(p.getUniqueId());
+            user.setName(p.getName());
         } else {
             user = fetched;
         }
