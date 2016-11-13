@@ -10,12 +10,19 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
 /**
  * Created on 16-3-21.
  */
 public class Main extends JavaPlugin {
 
-    private final Backend backend = new Backend();
+    private ExecutorService pool;
     private Manager manager;
     private String plural;
     private String singular;
@@ -23,13 +30,16 @@ public class Main extends JavaPlugin {
 
     @Override
     public void onLoad() {
+        pool = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
         manager = new Manager(this);
+
         getServer().getServicesManager().register(
                 MyEconomy.class,
                 manager,
                 this,
                 ServicePriority.Normal
         );
+
         Plugin vault = getServer().getPluginManager().getPlugin("Vault");
         if (vault != null) {
             getServer().getServicesManager().register(
@@ -67,17 +77,15 @@ public class Main extends JavaPlugin {
                 ChatColor.GREEN + "梦梦家高性能服务器出租店",
                 ChatColor.GREEN + "shop105595113.taobao.com"
         });
-
-        backend.start();
     }
 
     @Override
     public void onDisable() {
-        backend.shutdown();
+        pool.shutdown();
         try {
-            backend.join();
+            pool.awaitTermination(1, TimeUnit.MINUTES);
         } catch (InterruptedException e) {
-            getLogger().info("interrupted");
+            e.printStackTrace();
         }
     }
 
@@ -90,7 +98,7 @@ public class Main extends JavaPlugin {
     }
 
     public void execute(Runnable j) {
-        backend.submit(j);
+        pool.submit(j);
     }
 
     public String getPlural() {
@@ -99,6 +107,10 @@ public class Main extends JavaPlugin {
 
     public String getSingular() {
         return singular;
+    }
+
+    public <T> Future<T> submit(Callable<T> call) {
+        return pool.submit(call);
     }
 
 }

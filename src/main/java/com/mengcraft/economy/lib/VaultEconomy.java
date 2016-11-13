@@ -7,23 +7,12 @@ import net.milkbowl.vault.economy.EconomyResponse;
 import org.bukkit.OfflinePlayer;
 
 import java.util.List;
-import java.util.concurrent.FutureTask;
-import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Created on 16-3-21.
  */
 public class VaultEconomy implements Economy {
 
-    private final ThreadPoolExecutor executor = new ThreadPoolExecutor(
-            0,
-            2147483647,
-            60L,
-            TimeUnit.SECONDS,
-            new SynchronousQueue<>()
-    );
     private final Main main;
     private final Manager manager;
 
@@ -129,7 +118,7 @@ public class VaultEconomy implements Economy {
 
     @Override
     public EconomyResponse withdrawPlayer(OfflinePlayer p, double v) {
-        return new VaultResponse(executor.submit(() -> manager.take(p, v)));
+        return new VaultResponse(main.submit(() -> manager.take(p, v)));
     }
 
     @Override
@@ -149,7 +138,7 @@ public class VaultEconomy implements Economy {
 
     @Override
     public EconomyResponse depositPlayer(OfflinePlayer p, double v) {
-        executor.execute(() -> manager.give(p, v));
+        main.execute(() -> manager.give(p, v));
         return new EconomyResponse(0, 0, EconomyResponse.ResponseType.SUCCESS, null);
     }
 
