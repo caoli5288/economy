@@ -17,4 +17,5 @@ public interface MyEconomy {
 
     boolean take(OfflinePlayer p, double value);
 
+    boolean take(OfflinePlayer from, OfflinePlayer to, double value);
 }

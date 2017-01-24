@@ -16,6 +16,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 
 /**
  * Created on 16-3-21.
@@ -77,6 +78,8 @@ public class Main extends JavaPlugin {
                 ChatColor.GREEN + "梦梦家高性能服务器出租店",
                 ChatColor.GREEN + "shop105595113.taobao.com"
         });
+
+        manager.hookQuit();
     }
 
     @Override
@@ -93,11 +96,7 @@ public class Main extends JavaPlugin {
         return getConfig().getInt("vault.scale");
     }
 
-    public static boolean eq(Object i, Object j) {
-        return i == j || (i != null && i.equals(j));
-    }
-
-    public void execute(Runnable j) {
+    public void exec(Runnable j) {
         pool.submit(j);
     }
 
@@ -111,6 +110,10 @@ public class Main extends JavaPlugin {
 
     public <T> Future<T> submit(Callable<T> call) {
         return pool.submit(call);
+    }
+
+    public void log(Exception e) {
+        getLogger().log(Level.SEVERE, e.toString(), e);
     }
 
 }

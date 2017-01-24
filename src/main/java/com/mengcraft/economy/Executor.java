@@ -12,7 +12,7 @@ import org.bukkit.entity.Player;
 import java.util.Iterator;
 import java.util.List;
 
-import static com.mengcraft.economy.Main.eq;
+import static com.mengcraft.economy.$.eq;
 import static java.util.Arrays.asList;
 
 /**
@@ -42,22 +42,22 @@ public class Executor implements CommandExecutor {
 
     private boolean execute(CommandSender p, Iterator<String> it) {
         if (it.hasNext()) {
-            String s1 = it.next();
-            if (eq(s1, "look")) {
+            String label = it.next();
+            if (eq(label, "look")) {
                 return look(p, it);
-            } else if (eq(s1, "give")) {
+            } else if (eq(label, "give")) {
                 return give(p, it);
-            } else if (eq(s1, "take")) {
+            } else if (eq(label, "take")) {
                 return take(p, it);
-            } else if (eq(s1, "set")) {
+            } else if (eq(label, "set")) {
                 return set(p, it);
-            } else if (eq(s1, "top")) {
+            } else if (eq(label, "top")) {
                 return top(p);
             } else {
                 sendMessage(p);
             }
         } else if (p instanceof Player) {
-            main.execute(() -> {
+            main.exec(() -> {
                 double i = manager.get(((Player) p));
                 p.sendMessage(ChatColor.BLUE + "你拥有" + i + main.getPlural());
             });
@@ -70,7 +70,7 @@ public class Executor implements CommandExecutor {
 
     private boolean top(CommandSender p) {
         if (p.hasPermission("money.top")) {
-            main.execute(() -> {
+            main.exec(() -> {
                 List<User> list = top.get();
                 int i = 1;
                 p.sendMessage(ChatColor.GOLD + ">>> 富豪排行榜");
@@ -101,7 +101,7 @@ public class Executor implements CommandExecutor {
     }
 
     private void set(CommandSender p, OfflinePlayer j, double i) {
-        main.execute(() -> {
+        main.exec(() -> {
             manager.set(j, i);
         });
         p.sendMessage(ChatColor.GREEN + "操作成功");
@@ -124,7 +124,7 @@ public class Executor implements CommandExecutor {
     }
 
     private void take(CommandSender p, OfflinePlayer j, double i) {
-        main.execute(() -> {
+        main.exec(() -> {
             if (manager.take(j, i)) {
                 p.sendMessage(ChatColor.GREEN + "操作成功");
             } else {
@@ -152,27 +152,25 @@ public class Executor implements CommandExecutor {
     }
 
     private void give(CommandSender p, OfflinePlayer j, double i) {
-        main.execute(() -> {
-            main.getDatabase().beginTransaction();
+        main.exec(() -> {
             try {// Console always has permission so never thr cast exception
-                if (p.hasPermission("money.admin") || manager.take(Player.class.cast(p), i)) {
+                if (p.hasPermission("money.admin")) {
                     manager.give(j, i);
-                    main.getDatabase().commitTransaction();
-                    p.sendMessage(ChatColor.GREEN + "操作成功");
+                } else {
+                    manager.take(Player.class.cast(p), j, i);
                 }
+                p.sendMessage(ChatColor.GREEN + "操作成功");
             } catch (Exception e) {
-                main.getLogger().throwing("", "", e);
+                main.log(e);
                 p.sendMessage(ChatColor.RED + "操作失败");
-            } finally {
-                main.getDatabase().endTransaction();
             }
         });
     }
 
     private boolean look(CommandSender p, Iterator<String> it) {
         if (it.hasNext() && p.hasPermission("money.look")) {
-            OfflinePlayer j = main.getServer().getOfflinePlayer(it.next());
-            main.execute(() -> {
+            main.exec(() -> {
+                OfflinePlayer j = main.getServer().getOfflinePlayer(it.next());// sync blocking method
                 double i = manager.get(j);
                 p.sendMessage(ChatColor.BLUE + "玩家" + j.getName() + "拥有" + i + main.getPlural());
             });

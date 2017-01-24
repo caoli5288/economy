@@ -138,7 +138,7 @@ public class VaultEconomy implements Economy {
 
     @Override
     public EconomyResponse depositPlayer(OfflinePlayer p, double v) {
-        main.execute(() -> manager.give(p, v));
+        main.exec(() -> manager.give(p, v));
         return new EconomyResponse(0, 0, EconomyResponse.ResponseType.SUCCESS, null);
     }
 
