@@ -1,34 +1,22 @@
 package com.mengcraft.economy.lib;
 
 import com.mengcraft.economy.Main;
-import com.mengcraft.economy.MoneyManager;
+import com.mengcraft.economy.Manager;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
 import org.bukkit.OfflinePlayer;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.List;
-import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Created on 16-3-21.
  */
 public class VaultEconomy implements Economy {
 
-    private final ThreadPoolExecutor executor = new ThreadPoolExecutor(
-            0,
-            2147483647,
-            60L,
-            TimeUnit.SECONDS,
-            new SynchronousQueue<>()
-    );
     private final Main main;
-    private final MoneyManager manager;
+    private final Manager manager;
 
-    public VaultEconomy(Main main, MoneyManager manager) {
+    public VaultEconomy(Main main, Manager manager) {
         this.main = main;
         this.manager = manager;
     }
@@ -54,18 +42,18 @@ public class VaultEconomy implements Economy {
     }
 
     @Override
-    public String format(double v) {
-        return new BigDecimal(v).setScale(fractionalDigits(), RoundingMode.DOWN).toString();
+    public String format(double value) {
+        return String.valueOf(manager.round(value));
     }
 
     @Override
     public String currencyNamePlural() {
-        return main.getConfig().getString("vault.unit.plural");
+        return main.getPlural();
     }
 
     @Override
     public String currencyNameSingular() {
-        return main.getConfig().getString("vault.unit.singular");
+        return main.getSingular();
     }
 
     @Override
@@ -89,8 +77,8 @@ public class VaultEconomy implements Economy {
     }
 
     @Override
-    public double getBalance(String s) {
-        return getBalance(main.getServer().getOfflinePlayer(s));
+    public double getBalance(String name) {
+        return getBalance(main.getServer().getOfflinePlayer(name));
     }
 
     @Override
@@ -99,18 +87,13 @@ public class VaultEconomy implements Economy {
     }
 
     @Override
-    public double getBalance(String s, String s1) {
-        return getBalance(main.getServer().getOfflinePlayer(s));
+    public double getBalance(String name, String s1) {
+        return getBalance(name);
     }
 
     @Override
-    public double getBalance(OfflinePlayer offlinePlayer, String s) {
-        return getBalance(main.getServer().getOfflinePlayer(s));
-    }
-
-    @Override
-    public boolean has(String s, double v) {
-        return has(main.getServer().getOfflinePlayer(s), v);
+    public double getBalance(OfflinePlayer p, String s) {
+        return getBalance(p);
     }
 
     @Override
@@ -119,59 +102,59 @@ public class VaultEconomy implements Economy {
     }
 
     @Override
-    public boolean has(String s, String s1, double v) {
-        return has(main.getServer().getOfflinePlayer(s), v);
+    public boolean has(String name, double v) {
+        return has(main.getServer().getOfflinePlayer(name), v);
     }
 
     @Override
-    public boolean has(OfflinePlayer offlinePlayer, String s, double v) {
-        return has(main.getServer().getOfflinePlayer(s), v);
+    public boolean has(String name, String s1, double value) {
+        return has(name, value);
     }
 
     @Override
-    public EconomyResponse withdrawPlayer(String s, double v) {
-        return withdrawPlayer(main.getServer().getOfflinePlayer(s), v);
+    public boolean has(OfflinePlayer p, String s, double v) {
+        return has(p, v);
     }
 
     @Override
     public EconomyResponse withdrawPlayer(OfflinePlayer p, double v) {
-        return new VaultResponse(executor.submit(() -> manager.take(p, v)));
+        return new VaultResponse(main.submit(() -> manager.take(p, v)));
     }
 
     @Override
-    public EconomyResponse withdrawPlayer(String s, String s1, double v) {
-        return withdrawPlayer(main.getServer().getOfflinePlayer(s), v);
+    public EconomyResponse withdrawPlayer(String name, double v) {
+        return withdrawPlayer(main.getServer().getOfflinePlayer(name), v);
     }
 
     @Override
-    public EconomyResponse withdrawPlayer(OfflinePlayer offlinePlayer, String s, double v) {
-        return withdrawPlayer(main.getServer().getOfflinePlayer(s), v);
+    public EconomyResponse withdrawPlayer(String name, String s1, double v) {
+        return withdrawPlayer(name, v);
     }
 
     @Override
-    public EconomyResponse depositPlayer(String s, double v) {
-        return depositPlayer(main.getServer().getOfflinePlayer(s), v);
+    public EconomyResponse withdrawPlayer(OfflinePlayer p, String s, double v) {
+        return withdrawPlayer(p, v);
     }
 
     @Override
     public EconomyResponse depositPlayer(OfflinePlayer p, double v) {
-        manager.give(p, v);
-        return new EconomyResponse(0, 0, null, null) {
-            @Override
-            public boolean transactionSuccess() {
-                return true;
-            }
-        };
+        main.exec(() -> manager.give(p, v));
+        return new EconomyResponse(0, 0, EconomyResponse.ResponseType.SUCCESS, null);
     }
 
     @Override
-    public EconomyResponse depositPlayer(String s, String s1, double v) {
-        return depositPlayer(main.getServer().getOfflinePlayer(s), v);
+    public EconomyResponse depositPlayer(String name, double v) {
+        return depositPlayer(main.getServer().getOfflinePlayer(name), v);
     }
 
     @Override
-    public EconomyResponse depositPlayer(OfflinePlayer offlinePlayer, String s, double v) {
-        return depositPlayer(main.getServer().getOfflinePlayer(s), v);
+    public EconomyResponse depositPlayer(String name, String s1, double v) {
+        return depositPlayer(name, v);
+    }
+
+    @Override
+    public EconomyResponse depositPlayer(OfflinePlayer p, String s, double v) {
+        return depositPlayer(p, v);
     }
 
     @Override

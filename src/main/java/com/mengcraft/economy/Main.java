@@ -1,37 +1,55 @@
 package com.mengcraft.economy;
 
-import com.mengcraft.economy.db.EbeanHandler;
-import com.mengcraft.economy.db.EbeanManager;
 import com.mengcraft.economy.entity.User;
-import com.mengcraft.economy.lib.VaultHook;
+import com.mengcraft.economy.lib.VaultEconomy;
+import com.mengcraft.simpleorm.EbeanHandler;
+import com.mengcraft.simpleorm.EbeanManager;
+import net.milkbowl.vault.economy.Economy;
 import org.bukkit.ChatColor;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 
 /**
  * Created on 16-3-21.
  */
 public class Main extends JavaPlugin {
 
-    private final Backend backend = new Backend();
-    private MoneyManager manager;
+    private ExecutorService pool;
+    private Manager manager;
     private String plural;
     private String singular;
 
 
     @Override
     public void onLoad() {
-        manager = new MoneyManager(this);
+        pool = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
+        manager = new Manager(this);
+
         getServer().getServicesManager().register(
-                MoneyManager.class,
+                MyEconomy.class,
                 manager,
                 this,
                 ServicePriority.Normal
         );
+
         Plugin vault = getServer().getPluginManager().getPlugin("Vault");
         if (vault != null) {
-            VaultHook.hook(this, manager);
+            getServer().getServicesManager().register(
+                    Economy.class,
+                    new VaultEconomy(this, manager),
+                    this,
+                    ServicePriority.Highest
+            );
+            getLogger().info("Hook to vault!!!");
         }
     }
 
@@ -61,16 +79,16 @@ public class Main extends JavaPlugin {
                 ChatColor.GREEN + "shop105595113.taobao.com"
         });
 
-        backend.start();
+        manager.hookQuit();
     }
 
     @Override
     public void onDisable() {
-        backend.shutdown();
+        pool.shutdown();
         try {
-            backend.join();
+            pool.awaitTermination(1, TimeUnit.MINUTES);
         } catch (InterruptedException e) {
-            getLogger().info("interrupted");
+            e.printStackTrace();
         }
     }
 
@@ -78,12 +96,8 @@ public class Main extends JavaPlugin {
         return getConfig().getInt("vault.scale");
     }
 
-    public static boolean eq(Object i, Object j) {
-        return i == j || (i != null && i.equals(j));
-    }
-
-    public void execute(Runnable j) {
-        backend.submit(j);
+    public void exec(Runnable j) {
+        pool.submit(j);
     }
 
     public String getPlural() {
@@ -92,6 +106,14 @@ public class Main extends JavaPlugin {
 
     public String getSingular() {
         return singular;
+    }
+
+    public <T> Future<T> submit(Callable<T> call) {
+        return pool.submit(call);
+    }
+
+    public void log(Exception e) {
+        getLogger().log(Level.SEVERE, e.toString(), e);
     }
 
 }
