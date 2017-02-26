@@ -1,6 +1,8 @@
 package com.mengcraft.economy;
 
 import com.avaje.ebean.EbeanServer;
+import com.avaje.ebean.Transaction;
+import com.mengcraft.economy.entity.Log;
 import com.mengcraft.economy.entity.User;
 import com.mengcraft.economy.lib.Cache;
 import org.bukkit.OfflinePlayer;
@@ -24,9 +26,11 @@ public class Manager implements MyEconomy, Listener {
 
     private final Map<UUID, Cache<User>> handle = new ConcurrentHashMap<>();
     private final Main main;
+    private final boolean debug;
 
     public Manager(Main main) {
         this.main = main;
+        debug = main.getConfig().getBoolean("debug");
     }
 
     private Cache<User> fetch(OfflinePlayer p) {
@@ -57,7 +61,9 @@ public class Manager implements MyEconomy, Listener {
     public void set(OfflinePlayer p, double v) {
         Cache<User> cache = fetch(p);
         User user = cache.get(true);
-        user.setValue(round(v));
+        double value = round(v);
+        user.setValue(value);
+        log(p, value);
         main.getDatabase().save(user);
     }
 
@@ -69,25 +75,28 @@ public class Manager implements MyEconomy, Listener {
     }
 
     @Override
-    public void give(OfflinePlayer p, double value) {
-        if (!(round(value) > 0)) {
-            throw new IllegalArgumentException(String.valueOf(value));
+    public void give(OfflinePlayer p, double v) {
+        if (!(round(v) > 0)) {
+            throw new IllegalArgumentException(String.valueOf(v));
         }
         User user = fetch(p).get(true);
-        user.setValue(round(user.getValue() + value));
+        double value = round(user.getValue() + v);
+        user.setValue(value);
+        log(p, value);
         main.getDatabase().save(user);
     }
 
     @Override
-    public boolean take(OfflinePlayer p, double value) {
-        if (!(round(value) > 0)) {
-            throw new IllegalArgumentException(String.valueOf(value));
+    public boolean take(OfflinePlayer p, double v) {
+        if (!(round(v) > 0)) {
+            throw new IllegalArgumentException(String.valueOf(v));
         }
         User user = fetch(p).get(true);
-        double newValue = round(user.getValue() - value);
-        boolean result = !(newValue < 0);
+        double value = round(user.getValue() - v);
+        boolean result = !(value < 0);
         if (result) {
-            user.setValue(newValue);
+            user.setValue(value);
+            log(p, value);
             main.getDatabase().save(user);
         }
         return result;
@@ -95,33 +104,41 @@ public class Manager implements MyEconomy, Listener {
 
     @Override
     public boolean take(OfflinePlayer from, OfflinePlayer to, double value) {
-        EbeanServer db = main.getDatabase();
-        db.beginTransaction();
+        Transaction transaction = main.getDatabase().beginTransaction();
+        boolean result;
         try {
-            if (take(from, value)) {
+            if (result = take(from, value)) {
                 give(to, value);
-                db.commitTransaction();
-                return true;// hope this transaction work
+                transaction.commit();
             }
         } catch (Exception e) {
             throw new RuntimeException(e.getMessage());
         } finally {
-            db.endTransaction();
+            transaction.end();
         }
-        return false;
+        return result;
     }
 
     public double round(double in) {
         return new BigDecimal(in).setScale(main.getScale(), RoundingMode.HALF_UP).doubleValue();
     }
 
-    public void hookQuit() {
+    void hookQuit() {
         EventExecutor e = (l, event) -> {
             Player p = PlayerQuitEvent.class.cast(event).getPlayer();
             handle.remove(p.getUniqueId());
         };
         RegisteredListener l = new RegisteredListener(this, e, EventPriority.NORMAL, main, false);
         PlayerQuitEvent.getHandlerList().register(l);
+    }
+
+    private void log(OfflinePlayer p, double value) {
+        if (debug) {
+            Log log = new Log();
+            log.setName(p.getName());
+            log.setValue(value);
+            main.getDatabase().save(log);
+        }
     }
 
 }

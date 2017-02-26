@@ -93,7 +93,7 @@ public class Main extends JavaPlugin {
     }
 
     public int getScale() {
-        return getConfig().getInt("vault.scale");
+        return getConfig().getInt("vault.scale", 2);
     }
 
     public void exec(Runnable j) {
