@@ -1,5 +1,6 @@
 package com.mengcraft.economy;
 
+import com.mengcraft.economy.entity.Log;
 import com.mengcraft.economy.entity.User;
 import com.mengcraft.economy.lib.VaultEconomy;
 import com.mengcraft.simpleorm.EbeanHandler;
@@ -59,6 +60,7 @@ public class Main extends JavaPlugin {
 
         EbeanHandler db = EbeanManager.DEFAULT.getHandler(this);
         if (!db.isInitialized()) {
+            db.define(Log.class);
             db.define(User.class);
             try {
                 db.initialize();
