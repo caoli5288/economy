@@ -4,34 +4,37 @@ import org.bukkit.event.HandlerList;
 
 import java.util.UUID;
 
+/**
+ * Called when a player's points is to be reset.
+ */
 public class PlayerPointsResetEvent extends PlayerPointsEvent {
 
     /**
      * Handler list.
      */
-    private static final HandlerList HANDLER_LIST = new HandlerList();
+    private static final HandlerList handlers = new HandlerList();
 
-    public PlayerPointsResetEvent(UUID who) {
-        super(who, -1);
+    /**
+     * Constructor.
+     * 
+     * @param name
+     *            - Name of player.
+     */
+    public PlayerPointsResetEvent(UUID id) {
+        super(id, 0);
     }
 
+    /**
+     * Static method to get HandlerList.
+     * 
+     * @return HandlerList.
+     */
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     @Override
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
-
-    @Override
-    public int getChange() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setChange(int change) {
-        throw new UnsupportedOperationException();
-    }
-
 }

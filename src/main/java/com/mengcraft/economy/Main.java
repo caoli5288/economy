@@ -1,13 +1,21 @@
 package com.mengcraft.economy;
 
+import com.avaje.ebean.EbeanServer;
 import com.mengcraft.economy.entity.Log;
 import com.mengcraft.economy.entity.User;
 import com.mengcraft.economy.lib.VaultEconomy;
+import com.mengcraft.economy.sub.SubPluginLoader;
 import com.mengcraft.simpleorm.EbeanHandler;
 import com.mengcraft.simpleorm.EbeanManager;
+import lombok.SneakyThrows;
+import lombok.val;
 import net.milkbowl.vault.economy.Economy;
+import org.black_ixx.playerpoints.PP;
+import org.black_ixx.playerpoints.PlayerPoints;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -28,7 +36,12 @@ public class Main extends JavaPlugin {
     private Manager manager;
     private String plural;
     private String singular;
+    private EbeanServer database;
 
+    @Override
+    public EbeanServer getDatabase() {
+        return database;
+    }
 
     @Override
     public void onLoad() {
@@ -54,12 +67,22 @@ public class Main extends JavaPlugin {
         }
     }
 
+    @SneakyThrows
     @Override
     public void onEnable() {
+        getConfig().options().copyDefaults(true);
         saveDefaultConfig();
+
+        boolean pp = getConfig().getBoolean("pp.hook");
+        if (pp) {
+            $.thr(!$.nil(Bukkit.getPluginManager().getPlugin("PlayerPoints")), "!!! PlayerPoints already loaded");
+        }
 
         EbeanHandler db = EbeanManager.DEFAULT.getHandler(this);
         if (!db.isInitialized()) {
+            if (pp) {
+                db.define(PP.class);
+            }
             db.define(Log.class);
             db.define(User.class);
             try {
@@ -70,6 +93,13 @@ public class Main extends JavaPlugin {
         }
         db.install();
         db.reflect();
+        database = db.getServer();
+
+        if (pp) {
+            val description = new PluginDescriptionFile(getResource("p.yml"));
+            val p = new PlayerPoints();
+            SubPluginLoader.of(this).loadPlugin(p, description);
+        }
 
         plural = getConfig().getString("vault.unit.plural");
         singular = getConfig().getString("vault.unit.singular");

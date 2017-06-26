@@ -24,6 +24,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 /**
@@ -68,9 +70,8 @@ public class SubPluginLoader implements PluginLoader {
     }
 
     private final JavaPlugin plugin;
-    private boolean unload;
 
-    public SubPluginLoader(JavaPlugin plugin) {
+    private SubPluginLoader(JavaPlugin plugin) {
         this.plugin = plugin;
     }
 
@@ -81,11 +82,23 @@ public class SubPluginLoader implements PluginLoader {
 
     public Plugin loadPlugin(SubPlugin sub, PluginDescriptionFile description) throws InvalidPluginException {
         valid(sub, description);
+
         sub.setLoader(this);
         sub.setDescription(description);
         sub.setParent(plugin);
+
+        val logger = plugin.getLogger();
+        val log = "[Sub|" + description.getName() + "] ";
+
+        sub.setLogger(new Logger(sub.getClass().getCanonicalName(), null) {
+            public void log(LogRecord record) {
+                record.setMessage(log + record.getMessage());
+                logger.log(record);
+            }
+        });
         Fun.load(sub);
         Bukkit.getPluginManager().enablePlugin(sub);
+
         return sub;
     }
 
@@ -135,6 +148,10 @@ public class SubPluginLoader implements PluginLoader {
         }
     }
 
+    public void unloadAll() {
+        unloadAll(plugin);
+    }
+
     public static void unloadAll(JavaPlugin parent) {
         for (SubPlugin plugin : Fun.INSTANCE.loaded) {
             if (plugin.getParent() == parent) {
@@ -182,6 +199,11 @@ public class SubPluginLoader implements PluginLoader {
             throw new IllegalStateException("Cannot get plugin for " + clazz + " from a static initializer");
         }
         return clazz.cast(plugin);
+    }
+
+    public static SubPluginLoader of(JavaPlugin parent) {
+        if (parent == null) throw new NullPointerException("parent");
+        return new SubPluginLoader(parent);
     }
 
 }

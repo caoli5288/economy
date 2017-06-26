@@ -1,6 +1,5 @@
 package org.black_ixx.playerpoints.event;
 
-import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 
 import java.util.UUID;
@@ -10,29 +9,34 @@ import java.util.UUID;
  */
 public class PlayerPointsChangeEvent extends PlayerPointsEvent {
 
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-    private int change;
+    /**
+     * Handler list.
+     */
+    private static final HandlerList handlers = new HandlerList();
 
-    public PlayerPointsChangeEvent(UUID who, int change) {
-        super(who, change);
-        this.change = change;
+    /**
+     * Constructor.
+     * 
+     * @param name
+     *            - Name of player.
+     * @param change
+     *            - Amount of points to be changed.
+     */
+    public PlayerPointsChangeEvent(UUID id, int change) {
+        super(id, change);
     }
 
-    public int getChange() {
-        return change;
-    }
-
-    public void setChange(int change) {
-        this.change = change;
-    }
-
+    /**
+     * Static method to get HandlerList.
+     * 
+     * @return HandlerList.
+     */
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     @Override
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
-
 }

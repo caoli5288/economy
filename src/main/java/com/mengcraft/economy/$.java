@@ -17,4 +17,7 @@ public final class $ {
         return i == j || (!nil(i) && i.equals(j));
     }
 
+    public static void thr(boolean b, String message) {
+        if (b) throw new IllegalStateException(message);
+    }
 }
