@@ -12,8 +12,8 @@ import lombok.val;
 import net.milkbowl.vault.economy.Economy;
 import org.black_ixx.playerpoints.PP;
 import org.black_ixx.playerpoints.PlayerPoints;
+import org.black_ixx.playerpoints.PlayerPointsAPI;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.ServicePriority;
@@ -97,7 +97,7 @@ public class Main extends JavaPlugin {
 
         if (pp) {
             val description = new PluginDescriptionFile(getResource("p.yml"));
-            val p = new PlayerPoints();
+            val p = new PlayerPoints(new PlayerPointsAPI(db.getServer()));
             SubPluginLoader.of(this).loadPlugin(p, description);
         }
 
@@ -106,12 +106,10 @@ public class Main extends JavaPlugin {
 
         getCommand("money").setExecutor(new Executor(this, manager));
 
-        getServer().getConsoleSender().sendMessage(new String[]{
-                ChatColor.GREEN + "梦梦家高性能服务器出租店",
-                ChatColor.GREEN + "shop105595113.taobao.com"
-        });
-
         manager.hookQuit();
+
+        getLogger().info("梦梦家高性能服务器出租店");
+        getLogger().info("shop105595113.taobao.com");
     }
 
     @Override

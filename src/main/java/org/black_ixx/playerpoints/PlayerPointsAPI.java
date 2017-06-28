@@ -18,7 +18,7 @@ public class PlayerPointsAPI {
 
     private final EbeanServer database;
 
-    PlayerPointsAPI(EbeanServer database) {
+    public PlayerPointsAPI(EbeanServer database) {
         this.database = database;
     }
 
@@ -35,10 +35,11 @@ public class PlayerPointsAPI {
                 .set("value", event.getChange());
         int result = update.execute();
         if (result == 0) {
-            val insert = database.createUpdate(PP.class, "insert into " + PP.TABLE_NAME + " set who = :who, value = :value")
-                    .set("who", who)
-                    .set("value", event.getChange());
-            result = insert.execute();
+            PP p = new PP();
+            p.setWho(who);
+            p.setValue(event.getChange());
+            database.insert(p);
+            return true;
         }
 
         return result == 1;
@@ -105,6 +106,13 @@ public class PlayerPointsAPI {
                 .set("who", who)
                 .set("value", event.getChange());
         int result = update.execute();
+        if (result == 0) {
+            PP p = new PP();
+            p.setWho(who);
+            p.setValue(event.getChange());
+            database.insert(p);
+            return true;
+        }
 
         return result == 1;
     }
@@ -124,7 +132,7 @@ public class PlayerPointsAPI {
     public boolean reset(String name, int amount) {
         val p = Bukkit.getPlayerExact(name);
         $.thr(nil(p), "offline");
-        return reset(p.getUniqueId());
+        return set(p.getUniqueId(), amount);
     }
 
 }

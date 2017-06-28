@@ -80,7 +80,7 @@ public class SubPluginLoader implements PluginLoader {
         throw new UnsupportedOperationException("Not supported yet");
     }
 
-    public Plugin loadPlugin(SubPlugin sub, PluginDescriptionFile description) throws InvalidPluginException {
+    public void loadPlugin(SubPlugin sub, PluginDescriptionFile description) throws InvalidPluginException {
         valid(sub, description);
 
         sub.setLoader(this);
@@ -98,8 +98,6 @@ public class SubPluginLoader implements PluginLoader {
         });
         Fun.load(sub);
         Bukkit.getPluginManager().enablePlugin(sub);
-
-        return sub;
     }
 
     @Override
