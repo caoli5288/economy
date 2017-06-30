@@ -26,11 +26,9 @@ public class Manager implements MyEconomy, Listener {
 
     private final Map<UUID, Cache<User>> handle = new ConcurrentHashMap<>();
     private final Main main;
-    private final boolean debug;
 
-    public Manager(Main main) {
+    Manager(Main main) {
         this.main = main;
-        debug = main.getConfig().getBoolean("debug");
     }
 
     private Cache<User> fetch(OfflinePlayer p) {
@@ -63,7 +61,7 @@ public class Manager implements MyEconomy, Listener {
         User user = cache.get(true);
         double value = round(v);
         user.setValue(value);
-        log(p, value);
+        main.log(p, value, Log.Op.SET);
         main.getDatabase().save(user);
     }
 
@@ -76,13 +74,13 @@ public class Manager implements MyEconomy, Listener {
 
     @Override
     public void give(OfflinePlayer p, double v) {
-        if (!(round(v) > 0)) {
+        if (round(v) <= 0) {
             throw new IllegalArgumentException(String.valueOf(v));
         }
         User user = fetch(p).get(true);
         double value = round(user.getValue() + v);
         user.setValue(value);
-        log(p, value);
+        main.log(p, value, Log.Op.ADD);
         main.getDatabase().save(user);
     }
 
@@ -96,7 +94,7 @@ public class Manager implements MyEconomy, Listener {
         boolean result = !(value < 0);
         if (result) {
             user.setValue(value);
-            log(p, value);
+            main.log(p, -value, Log.Op.ADD);
             main.getDatabase().save(user);
         }
         return result;
@@ -130,15 +128,6 @@ public class Manager implements MyEconomy, Listener {
         };
         RegisteredListener l = new RegisteredListener(this, e, EventPriority.NORMAL, main, false);
         PlayerQuitEvent.getHandlerList().register(l);
-    }
-
-    private void log(OfflinePlayer p, double value) {
-        if (debug) {
-            Log log = new Log();
-            log.setName(p.getName());
-            log.setValue(value);
-            main.getDatabase().save(log);
-        }
     }
 
 }

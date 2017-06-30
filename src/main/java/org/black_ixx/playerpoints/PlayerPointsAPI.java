@@ -2,6 +2,8 @@ package org.black_ixx.playerpoints;
 
 import com.avaje.ebean.EbeanServer;
 import com.mengcraft.economy.$;
+import com.mengcraft.economy.Main;
+import com.mengcraft.economy.entity.Log;
 import lombok.val;
 import org.black_ixx.playerpoints.event.PlayerPointsChangeEvent;
 import org.black_ixx.playerpoints.event.PlayerPointsResetEvent;
@@ -17,8 +19,10 @@ import static com.mengcraft.economy.$.nil;
 public class PlayerPointsAPI {
 
     private final EbeanServer database;
+    private final Main main;
 
-    public PlayerPointsAPI(EbeanServer database) {
+    public PlayerPointsAPI(Main main, EbeanServer database) {
+        this.main = main;
         this.database = database;
     }
 
@@ -39,10 +43,12 @@ public class PlayerPointsAPI {
             p.setWho(who);
             p.setValue(event.getChange());
             database.insert(p);
-            return true;
+            // Thr exception here if op not okay
         }
 
-        return result == 1;
+        main.log(Bukkit.getOfflinePlayer(who), event.getChange(), "point", Log.Op.ADD);
+
+        return true;
     }
 
     @Deprecated
@@ -111,10 +117,11 @@ public class PlayerPointsAPI {
             p.setWho(who);
             p.setValue(event.getChange());
             database.insert(p);
-            return true;
         }
 
-        return result == 1;
+        main.log(Bukkit.getOfflinePlayer(who), event.getChange(), "point", Log.Op.SET);
+
+        return true;
     }
 
     @Deprecated

@@ -14,6 +14,7 @@ import org.black_ixx.playerpoints.PP;
 import org.black_ixx.playerpoints.PlayerPoints;
 import org.black_ixx.playerpoints.PlayerPointsAPI;
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.ServicePriority;
@@ -37,6 +38,7 @@ public class Main extends JavaPlugin {
     private String plural;
     private String singular;
     private EbeanServer database;
+    private boolean log;
 
     @Override
     public EbeanServer getDatabase() {
@@ -73,16 +75,11 @@ public class Main extends JavaPlugin {
         getConfig().options().copyDefaults(true);
         saveDefaultConfig();
 
-        boolean pp = getConfig().getBoolean("pp.hook");
-        if (pp) {
-            $.thr(!$.nil(Bukkit.getPluginManager().getPlugin("PlayerPoints")), "!!! PlayerPoints already loaded");
-        }
+        log = getConfig().getBoolean("log");
 
         EbeanHandler db = EbeanManager.DEFAULT.getHandler(this);
         if (!db.isInitialized()) {
-            if (pp) {
-                db.define(PP.class);
-            }
+            db.define(PP.class);
             db.define(Log.class);
             db.define(User.class);
             try {
@@ -95,18 +92,19 @@ public class Main extends JavaPlugin {
         db.reflect();
         database = db.getServer();
 
-        if (pp) {
-            val description = new PluginDescriptionFile(getResource("p.yml"));
-            val p = new PlayerPoints(new PlayerPointsAPI(db.getServer()));
-            SubPluginLoader.of(this).loadPlugin(p, description);
-        }
-
         plural = getConfig().getString("vault.unit.plural");
         singular = getConfig().getString("vault.unit.singular");
 
         getCommand("money").setExecutor(new Executor(this, manager));
 
         manager.hookQuit();
+
+        if (getConfig().getBoolean("pp.hook")) {
+            $.thr(!$.nil(Bukkit.getPluginManager().getPlugin("PlayerPoints")), "!!! PlayerPoints already loaded");
+            val description = new PluginDescriptionFile(getResource("p.yml"));
+            val p = new PlayerPoints(new PlayerPointsAPI(this, db.getServer()));
+            SubPluginLoader.of(this).loadPlugin(p, description);
+        }
 
         getLogger().info("梦梦家高性能服务器出租店");
         getLogger().info("shop105595113.taobao.com");
@@ -127,7 +125,7 @@ public class Main extends JavaPlugin {
     }
 
     public void exec(Runnable j) {
-        pool.submit(j);
+        pool.execute(j);
     }
 
     public String getPlural() {
@@ -140,6 +138,21 @@ public class Main extends JavaPlugin {
 
     public <T> Future<T> submit(Callable<T> call) {
         return pool.submit(call);
+    }
+
+    public void log(OfflinePlayer p, double value, String label, Log.Op operator) {
+        if (log) {
+            val log = new Log();
+            log.setName(p.getName());
+            log.setValue(value);
+            log.setOperator(operator);
+            log.setLabel(label);
+            database.save(log);
+        }
+    }
+
+    public void log(OfflinePlayer p, double value, Log.Op operator) {
+        log(p, value, null, operator);
     }
 
     public void log(Exception e) {

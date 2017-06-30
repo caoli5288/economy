@@ -2,6 +2,7 @@ package com.mengcraft.economy;
 
 import com.mengcraft.economy.entity.User;
 import com.mengcraft.economy.lib.Cache;
+import lombok.val;
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
@@ -31,7 +32,7 @@ public class Executor implements CommandExecutor {
                 .orderBy("value desc")
                 .setMaxRows(20)
                 .findList());
-        top.setExpire(3000000);
+        top.setExpire(3000_000);
     }
 
 
@@ -89,8 +90,10 @@ public class Executor implements CommandExecutor {
             String next = it.next();
             if (it.hasNext()) {
                 double i = Double.parseDouble(it.next());
-                if (i > 0) {
-                    set(p, main.getServer().getOfflinePlayer(next), i);
+                if (i >= 0) {
+                    val who = main.getServer().getOfflinePlayer(next);
+                    main.exec(() -> manager.set(who, i));
+                    p.sendMessage(ChatColor.GREEN + "操作成功");
                 } else {
                     p.sendMessage(ChatColor.RED + "请不要使用负数");
                 }
@@ -98,13 +101,6 @@ public class Executor implements CommandExecutor {
             }
         }
         return false;
-    }
-
-    private void set(CommandSender p, OfflinePlayer j, double i) {
-        main.exec(() -> {
-            manager.set(j, i);
-        });
-        p.sendMessage(ChatColor.GREEN + "操作成功");
     }
 
     private boolean take(CommandSender p, Iterator<String> it) {
