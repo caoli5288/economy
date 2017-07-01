@@ -101,9 +101,9 @@ public class Manager implements MyEconomy, Listener {
     }
 
     @Override
-    public boolean take(OfflinePlayer from, OfflinePlayer to, double value) {
-        Transaction transaction = main.getDatabase().beginTransaction();
+    public boolean give(OfflinePlayer from, OfflinePlayer to, double value) {
         boolean result;
+        Transaction transaction = main.getDatabase().beginTransaction();
         try {
             if (result = take(from, value)) {
                 give(to, value);
