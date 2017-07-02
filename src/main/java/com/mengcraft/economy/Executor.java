@@ -153,7 +153,7 @@ public class Executor implements CommandExecutor {
                 if (p.hasPermission("money.admin")) {
                     manager.give(j, i);
                 } else {
-                    manager.take(Player.class.cast(p), j, i);
+                    manager.give(Player.class.cast(p), j, i);
                 }
                 p.sendMessage(ChatColor.GREEN + "操作成功");
             } catch (Exception e) {
