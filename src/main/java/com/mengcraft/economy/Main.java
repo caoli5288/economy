@@ -12,8 +12,6 @@ import lombok.val;
 import net.milkbowl.vault.economy.Economy;
 import org.black_ixx.playerpoints.PP;
 import org.black_ixx.playerpoints.PlayerPoints;
-import org.black_ixx.playerpoints.PlayerPointsAPI;
-import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginDescriptionFile;
@@ -27,6 +25,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
+
+import static com.mengcraft.economy.$.nil;
 
 /**
  * Created on 16-3-21.
@@ -99,10 +99,9 @@ public class Main extends JavaPlugin {
 
         manager.hookQuit();
 
-        if (getConfig().getBoolean("pp.hook")) {
-            $.thr(!$.nil(Bukkit.getPluginManager().getPlugin("PlayerPoints")), "!!! PlayerPoints already loaded");
+        if (getConfig().getBoolean("pp.replace") && nil(getServer().getPluginManager().getPlugin("PlayerPoints"))) {
             val description = new PluginDescriptionFile(getResource("p.yml"));
-            val p = new PlayerPoints(new PlayerPointsAPI(this, db.getServer()));
+            val p = new PlayerPoints();
             SubPluginLoader.of(this).loadPlugin(p, description);
         }
 
@@ -141,14 +140,12 @@ public class Main extends JavaPlugin {
     }
 
     public void log(OfflinePlayer p, double value, String label, Log.Op operator) {
-        if (log) {
-            val log = new Log();
-            log.setName(p.getName());
-            log.setValue(value);
-            log.setOperator(operator);
-            log.setLabel(label);
-            database.save(log);
-        }
+        val log = new Log();
+        log.setName(p.getName());
+        log.setValue(value);
+        log.setOperator(operator);
+        log.setLabel(label);
+        database.save(log);
     }
 
     public void log(OfflinePlayer p, double value, Log.Op operator) {

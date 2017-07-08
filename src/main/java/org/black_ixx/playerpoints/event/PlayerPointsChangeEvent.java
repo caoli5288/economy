@@ -13,6 +13,7 @@ public class PlayerPointsChangeEvent extends PlayerPointsEvent {
      * Handler list.
      */
     private static final HandlerList handlers = new HandlerList();
+    private final boolean extra;
 
     /**
      * Constructor.
@@ -23,7 +24,16 @@ public class PlayerPointsChangeEvent extends PlayerPointsEvent {
      *            - Amount of points to be changed.
      */
     public PlayerPointsChangeEvent(UUID id, int change) {
+        this(id, change, false);
+    }
+
+    public PlayerPointsChangeEvent(UUID id, int change, boolean extra) {
         super(id, change);
+        this.extra = extra;
+    }
+
+    public boolean isExtra() {
+        return extra;
     }
 
     /**

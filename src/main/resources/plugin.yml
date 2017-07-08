@@ -3,6 +3,7 @@ main: com.mengcraft.economy.Main
 version: ${project.version}
 author: caoli5288
 load: STARTUP
+loadbefore: [Ticket]
 
 commands:
   economy:
@@ -10,4 +11,4 @@ commands:
     description: None.
 
 depend: [SimpleORM]
-softdepend: [Vault]
+softdepend: [Vault, PlaceholderAPI]

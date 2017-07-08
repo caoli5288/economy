@@ -4,6 +4,5 @@ vault:
     plural: '金币'
     singular: '金币'
 pp:
-  hook: true
+  replace: true
 scale: 2
-log: true

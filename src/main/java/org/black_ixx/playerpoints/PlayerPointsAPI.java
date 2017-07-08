@@ -2,12 +2,13 @@ package org.black_ixx.playerpoints;
 
 import com.avaje.ebean.EbeanServer;
 import com.mengcraft.economy.$;
-import com.mengcraft.economy.Main;
 import com.mengcraft.economy.entity.Log;
 import lombok.val;
 import org.black_ixx.playerpoints.event.PlayerPointsChangeEvent;
 import org.black_ixx.playerpoints.event.PlayerPointsResetEvent;
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
+import org.bukkit.plugin.Plugin;
 
 import java.util.UUID;
 
@@ -16,14 +17,48 @@ import static com.mengcraft.economy.$.nil;
 /**
  * API hook.
  */
-public class PlayerPointsAPI {
+public final class PlayerPointsAPI {
 
-    private final EbeanServer database;
-    private final Main main;
+    private final EbeanServer db;
+    static PlayerPointsAPI inst;
 
-    public PlayerPointsAPI(Main main, EbeanServer database) {
-        this.main = main;
-        this.database = database;
+    private PlayerPointsAPI(EbeanServer db) {
+        this.db = db;
+    }
+
+    public static void init(Plugin plugin, EbeanServer db) {
+        $.thr(!$.nil(inst), "init");
+        inst = new PlayerPointsAPI(db);
+        if (!nil(Bukkit.getPluginManager().getPlugin("PlaceholderAPI"))) {
+            val placeholder = new PPlaceholder(plugin);
+            placeholder.hook();
+            plugin.getLogger().info("Hook to PlaceholderAPI okay");
+        }
+    }
+
+    public boolean giveExtra(UUID who, int value) {
+        $.thr(nil(who), "nil");
+        val event = new PlayerPointsChangeEvent(who, value, true);
+        Bukkit.getPluginManager().callEvent(event);
+        if (event.isCancelled()) {
+            return false;
+        }
+
+        val update = db.createUpdate(PP.class, "update " + PP.TABLE_NAME + " set extra = extra + :value where who = :who")
+                .set("who", who)
+                .set("value", event.getChange());
+        int result = update.execute();
+        if (result == 0) {
+            PP p = new PP();
+            p.setWho(who);
+            p.setExtra(event.getChange());
+            db.save(p);
+            // Thr exception here if op not okay
+        }
+
+        log(Bukkit.getOfflinePlayer(who), event.getChange(), "point", Log.Op.ADD_EXTRA);
+
+        return true;
     }
 
     public boolean give(UUID who, int value) {
@@ -34,7 +69,7 @@ public class PlayerPointsAPI {
             return false;
         }
 
-        val update = database.createUpdate(PP.class, "update " + PP.TABLE_NAME + " set value = value + :value where who = :who")
+        val update = db.createUpdate(PP.class, "update " + PP.TABLE_NAME + " set value = value + :value where who = :who")
                 .set("who", who)
                 .set("value", event.getChange());
         int result = update.execute();
@@ -42,11 +77,11 @@ public class PlayerPointsAPI {
             PP p = new PP();
             p.setWho(who);
             p.setValue(event.getChange());
-            database.insert(p);
+            db.insert(p);
             // Thr exception here if op not okay
         }
 
-        main.log(Bukkit.getOfflinePlayer(who), event.getChange(), "point", Log.Op.ADD);
+        log(Bukkit.getOfflinePlayer(who), event.getChange(), "point", Log.Op.ADD);
 
         return true;
     }
@@ -59,9 +94,45 @@ public class PlayerPointsAPI {
     }
 
     public boolean take(UUID who, int amount) {
+        return take(who, amount, true);
+    }
+
+    public boolean take(UUID who, int amount, boolean b) {
         $.thr(nil(who), "nil");
-        int look = look(who);
-        return look - amount > -1 && give(who, -amount);
+
+        val event = new PlayerPointsChangeEvent(who, -amount, b);
+        Bukkit.getPluginManager().callEvent(event);
+
+        if (event.isCancelled() || event.getChange() == 0) {
+            return false;
+        }
+
+        val point = db.find(PP.class, who);
+        if (nil(point)) return false;
+
+        int value = event.getChange();
+
+        if (b && point.getExtra() > 0) {
+            int i = point.getExtra() + value;
+            if (i > -1) {
+                point.setExtra(i);
+                db.update(point);
+                log(Bukkit.getOfflinePlayer(who), event.getChange(), "point", Log.Op.ADD_EXTRA);
+                return true;
+            }
+            value += point.getExtra();
+            point.setExtra(0);
+        }
+
+        int i = point.getValue() + value;
+        if (i > -1) {
+            point.setValue(i);
+            db.update(point);
+            log(Bukkit.getOfflinePlayer(who), event.getChange(), "point", Log.Op.ADD_EXTRA);
+            return true;
+        }
+
+        return false;
     }
 
     @Deprecated
@@ -71,11 +142,26 @@ public class PlayerPointsAPI {
         return take(p.getUniqueId(), amount);
     }
 
+    public int lookAll(UUID who) {
+        val p = db.find(PP.class, who);
+        if (nil(p)) return 0;
+        return p.getAll();
+    }
+
     public int look(UUID who) {
         $.thr(nil(who), "nil");
-        val find = database.find(PP.class, who);
+        val find = db.find(PP.class, who);
         if (!nil(find)) {
             return find.getValue();
+        }
+        return 0;
+    }
+
+    public int lookExtra(UUID who) {
+        $.thr(nil(who), "nil");
+        val find = db.find(PP.class, who);
+        if (!nil(find)) {
+            return find.getExtra();
         }
         return 0;
     }
@@ -88,7 +174,7 @@ public class PlayerPointsAPI {
     }
 
     public boolean pay(UUID who, UUID to, int amount) {
-        return take(who, amount) && give(to, amount);
+        return take(who, amount, false) && give(to, amount);
     }
 
     @Deprecated
@@ -108,7 +194,7 @@ public class PlayerPointsAPI {
             return false;
         }
 
-        val update = database.createUpdate(PP.class, "update " + PP.TABLE_NAME + " set value = :value where who = :who")
+        val update = db.createUpdate(PP.class, "update " + PP.TABLE_NAME + " set value = :value where who = :who")
                 .set("who", who)
                 .set("value", event.getChange());
         int result = update.execute();
@@ -116,10 +202,10 @@ public class PlayerPointsAPI {
             PP p = new PP();
             p.setWho(who);
             p.setValue(event.getChange());
-            database.insert(p);
+            db.insert(p);
         }
 
-        main.log(Bukkit.getOfflinePlayer(who), event.getChange(), "point", Log.Op.SET);
+        log(Bukkit.getOfflinePlayer(who), event.getChange(), "point", Log.Op.SET);
 
         return true;
     }
@@ -140,6 +226,15 @@ public class PlayerPointsAPI {
         val p = Bukkit.getPlayerExact(name);
         $.thr(nil(p), "offline");
         return set(p.getUniqueId(), amount);
+    }
+
+    public void log(OfflinePlayer p, double value, String label, Log.Op operator) {
+        val log = new Log();
+        log.setName(p.getName());
+        log.setValue(value);
+        log.setOperator(operator);
+        log.setLabel(label);
+        db.save(log);
     }
 
 }

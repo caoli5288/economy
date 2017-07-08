@@ -21,6 +21,7 @@ public class Log {
 
         SET,
         ADD,
+        ADD_EXTRA,
     }
 
     @Id

@@ -4,6 +4,7 @@
 
     <groupId>com.mengcraft</groupId>
     <artifactId>economy</artifactId>
+    <packaging>jar</packaging>
     <version>1.3-SNAPSHOT</version>
 
     <properties>
@@ -23,6 +24,10 @@
         <repository>
             <id>ci-mengcraft</id>
             <url>http://ci.mengcraft.com:8080/plugin/repository/everything</url>
+        </repository>
+        <repository>
+            <id>placeholder</id>
+            <url>http://repo.extendedclip.com/content/repositories/placeholderapi/</url>
         </repository>
     </repositories>
 
@@ -49,6 +54,12 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>1.16.16</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>me.clip</groupId>
+            <artifactId>placeholderapi</artifactId>
+            <version>2.0.8</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
