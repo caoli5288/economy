@@ -56,7 +56,7 @@ public final class PlayerPointsAPI {
             // Thr exception here if op not okay
         }
 
-        log(Bukkit.getOfflinePlayer(who), event.getChange(), "point", Log.Op.ADD_EXTRA);
+        log(Bukkit.getOfflinePlayer(who), event.getChange(), "point_ext", Log.Op.ADD_EXTRA);
 
         return true;
     }
@@ -110,25 +110,29 @@ public final class PlayerPointsAPI {
         val point = db.find(PP.class, who);
         if (nil(point)) return false;
 
-        int value = event.getChange();
+        val value = new ValueBox(-event.getChange());
 
         if (b && point.getExtra() > 0) {
-            int i = point.getExtra() + value;
+            int i = point.getExtra() - value.i;
             if (i > -1) {
                 point.setExtra(i);
                 db.update(point);
-                log(Bukkit.getOfflinePlayer(who), event.getChange(), "point", Log.Op.ADD_EXTRA);
+                log(Bukkit.getOfflinePlayer(who), -value.i, "point_ext", Log.Op.ADD_EXTRA);
                 return true;
             }
-            value += point.getExtra();
+            value.ext = point.getExtra();
+            value.i -= point.getExtra();
             point.setExtra(0);
         }
 
-        int i = point.getValue() + value;
+        int i = point.getValue() - value.i;
         if (i > -1) {
             point.setValue(i);
             db.update(point);
-            log(Bukkit.getOfflinePlayer(who), event.getChange(), "point", Log.Op.ADD_EXTRA);
+            log(Bukkit.getOfflinePlayer(who), -value.i, "point", Log.Op.ADD);
+            if (!(value.ext == 0)) {
+                log(Bukkit.getOfflinePlayer(who), -value.ext, "point_ext", Log.Op.ADD_EXTRA);
+            }
             return true;
         }
 

@@ -44,4 +44,8 @@ public class PlayerPoints extends JavaPlugin {
         return database;
     }
 
+    public PlayerPointsAPI getAPI() {
+        return PlayerPointsAPI.inst;
+    }
+
 }

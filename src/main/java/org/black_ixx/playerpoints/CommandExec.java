@@ -84,6 +84,23 @@ public class CommandExec {
             }
         }),
 
+        TAKE_POINT("PlayerPoints.take", (who, i) -> {
+            Player p = Bukkit.getPlayerExact(i.next());
+            if (!nil(p)) {
+                int value = Integer.parseInt(i.next());
+                runAsync(() -> {
+                    if (PlayerPointsAPI.inst.take(p.getUniqueId(), value, false)) {
+                        p.sendMessage(ChatColor.GREEN + String.format("你减少%d点券", value));
+                        who.sendMessage(ChatColor.GREEN + "操作已完成");
+                    } else {
+                        who.sendMessage(ChatColor.RED + "操作未完成");
+                    }
+                });
+            } else {
+                who.sendMessage(ChatColor.RED + "玩家不在线");
+            }
+        }),
+
         LOOK("PlayerPoints.look", (who, i) -> {
             Player p = Bukkit.getPlayerExact(i.next());
             if (!nil(p)) {
