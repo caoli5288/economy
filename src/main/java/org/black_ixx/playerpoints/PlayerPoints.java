@@ -1,16 +1,25 @@
 package org.black_ixx.playerpoints;
 
+import com.avaje.ebean.EbeanServer;
 import com.mengcraft.economy.sub.SubPlugin;
-import lombok.val;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-
-import static com.mengcraft.economy.$.nil;
 
 /**
  * Created on 17-6-26.
  */
 public class PlayerPoints extends SubPlugin {
+
+    private EbeanServer database;
+
+    @Override
+    public EbeanServer getDatabase() {
+        return database;
+    }
+
+    public void setDatabase(EbeanServer database) {
+        this.database = database;
+    }
 
     public PlayerPointsAPI getAPI() {
         return PlayerPointsAPI.inst;

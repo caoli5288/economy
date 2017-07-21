@@ -3,10 +3,13 @@ package com.mengcraft.economy;
 import com.avaje.ebean.EbeanServer;
 import com.mengcraft.economy.entity.Log;
 import com.mengcraft.economy.entity.User;
+import com.mengcraft.economy.lib.LibraryLoader;
+import com.mengcraft.economy.lib.MavenLibrary;
 import com.mengcraft.economy.lib.VaultEconomy;
 import com.mengcraft.economy.sub.SubPluginLoader;
 import com.mengcraft.simpleorm.EbeanHandler;
 import com.mengcraft.simpleorm.EbeanManager;
+import com.mengcraft.simpleorm.ORM;
 import lombok.SneakyThrows;
 import lombok.val;
 import net.milkbowl.vault.economy.Economy;
@@ -38,9 +41,7 @@ public class Main extends JavaPlugin {
     private String plural;
     private String singular;
     private EbeanServer database;
-    private boolean log;
 
-    @Override
     public EbeanServer getDatabase() {
         return database;
     }
@@ -75,7 +76,7 @@ public class Main extends JavaPlugin {
         getConfig().options().copyDefaults(true);
         saveDefaultConfig();
 
-        log = getConfig().getBoolean("log");
+        loadLibrary(this);
 
         EbeanHandler db = EbeanManager.DEFAULT.getHandler(this);
         if (!db.isInitialized()) {
@@ -102,11 +103,22 @@ public class Main extends JavaPlugin {
         if (getConfig().getBoolean("pp.replace") && nil(getServer().getPluginManager().getPlugin("PlayerPoints"))) {
             val description = new PluginDescriptionFile(getResource("p.yml"));
             val p = new PlayerPoints();
+            p.setDatabase(database);
             SubPluginLoader.of(this).loadPlugin(p, description);
         }
 
         getLogger().info("梦梦家高性能服务器出租店");
         getLogger().info("shop105595113.taobao.com");
+    }
+
+    public static void loadLibrary(JavaPlugin plugin) {
+        try {
+            plugin.getClass().getClassLoader().loadClass("com.mengcraft.simpleorm.ORM");
+        } catch (ClassNotFoundException ign) {
+            LibraryLoader.load(plugin, MavenLibrary.of("http://ci.mengcraft.com:8080/plugin/repository/everything",
+                    "com.mengcraft:simpleorm:0.6"));
+        }
+        ORM.loadLibrary(plugin);
     }
 
     @Override
