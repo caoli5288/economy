@@ -112,12 +112,9 @@ public class Main extends JavaPlugin {
     }
 
     public static void loadLibrary(JavaPlugin plugin) {
-        try {
-            plugin.getClass().getClassLoader().loadClass("com.mengcraft.simpleorm.ORM");
-        } catch (ClassNotFoundException ign) {
-            LibraryLoader.load(plugin, MavenLibrary.of("http://ci.mengcraft.com:8080/plugin/repository/everything",
-                    "com.mengcraft:simpleorm:0.6"));
-        }
+        LibraryLoader.load(plugin, "com.mengcraft.simpleorm.ORM",
+                MavenLibrary.of("http://ci.mengcraft.com:8080/plugin/repository/everything", "com.mengcraft:simpleorm:0.6.1"),
+                false);
         ORM.loadLibrary(plugin);
     }
 

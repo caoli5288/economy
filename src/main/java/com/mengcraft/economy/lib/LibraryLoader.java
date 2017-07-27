@@ -17,23 +17,42 @@ import java.util.concurrent.TimeoutException;
 public class LibraryLoader {
 
     @SneakyThrows
-    public static void load(JavaPlugin plugin, Library library) {
+    public static void load(JavaPlugin plugin, Library library, boolean resolveSub) {
         val lib = library.getFile();
 
         if (!library.isLoadable()) {
             load(plugin, library, lib);
         }
 
-        for (Library sub : library.getSublist()) {
-            load(plugin, sub);
+        if (resolveSub) {
+            for (Library sub : library.getSublist()) {
+                load(plugin, sub, true);
+            }
         }
 
         val add = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
         add.setAccessible(true);
-        val classLoader = (URLClassLoader) plugin.getClass().getClassLoader();
-        add.invoke(classLoader, lib.toURI().toURL());
+        val cl = (URLClassLoader) plugin.getClass().getClassLoader();
+        add.invoke(cl, lib.toURI().toURL());
 
         plugin.getLogger().info("Load library " + lib + " done");
+    }
+
+    public static void load(JavaPlugin plugin, Library library) {
+        load(plugin, library, true);
+    }
+
+    public static void load(JavaPlugin pl, String clz, Library lib, boolean resolve) {
+        try {
+            Class.forName(clz);
+        } catch (ClassNotFoundException ign) {
+            pl.getLogger().info("Missing lib " + clz);
+            load(pl, lib, resolve);
+        }
+    }
+
+    public static void load(JavaPlugin pl, String clz, Library lib) {
+        load(pl, clz, lib, true);
     }
 
     @SneakyThrows
