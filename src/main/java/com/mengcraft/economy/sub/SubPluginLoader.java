@@ -80,7 +80,10 @@ public class SubPluginLoader implements PluginLoader {
         throw new UnsupportedOperationException("Not supported yet");
     }
 
-    public void loadPlugin(SubPlugin sub, PluginDescriptionFile description) throws InvalidPluginException {
+    public void loadPlugin(Plugin pl, PluginDescriptionFile description) throws InvalidPluginException {
+        valid(pl);
+
+        SubPlugin sub = (SubPlugin) pl;
         valid(sub, description);
 
         sub.setLoader(this);

@@ -10,4 +10,4 @@ commands:
     aliases: [eco, bal, balance, money]
     description: None.
 
-softdepend: [SimpleORM, Vault, PlaceholderAPI]
+softdepend: [SimpleORM, Vault, PlaceholderAPI, PlayerPoints]

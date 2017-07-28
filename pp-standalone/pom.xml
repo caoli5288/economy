@@ -14,6 +14,17 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
                 <version>3.0.0</version>
+                <configuration>
+                    <filters>
+                        <filter>
+                            <artifact>com.mengcraft:economy</artifact>
+                            <excludes>
+                                <exclude>com/mengcraft/economy/Main.*</exclude>
+                                <exclude>com/mengcraft/economy/Manager.*</exclude>
+                            </excludes>
+                        </filter>
+                    </filters>
+                </configuration>
                 <executions>
                     <execution>
                         <phase>package</phase>
