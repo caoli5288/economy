@@ -150,6 +150,7 @@ public class CommandExec {
 
     public static boolean exec(Plugin plugin, CommandSender who, String[] input) {
         if (input.length == 0){
+            sendMessage(who);
             return false;
         }
         val i = Arrays.asList(input).iterator();
@@ -164,7 +165,34 @@ public class CommandExec {
             who.sendMessage(ChatColor.RED + e.toString());
             plugin.getLogger().log(Level.SEVERE, who + "|" + Arrays.toString(input), e);
         }
+        sendMessage(who);
         return false;
     }
 
+    private static void sendMessage(CommandSender p) {
+        if (p.hasPermission("PlayerPoints.give")) {
+            p.sendMessage("/points give <p> <points>");
+        }
+        if (p.hasPermission("PlayerPoints.give-extra")) {
+            p.sendMessage("/points give-extra <p> <points>");
+        }
+        if (p.hasPermission("PlayerPoints.giveall")) {
+            p.sendMessage("/points giveall <p> <points>");
+        }
+        if (p.hasPermission("PlayerPoints.take")) {
+            p.sendMessage("/points take <p> <points>");
+        }
+        if (p.hasPermission("PlayerPoints.take")) {
+            p.sendMessage("/points take-point <p> <points>");
+        }
+        if (p.hasPermission("PlayerPoints.look")) {
+            p.sendMessage("/points look <p>");
+        }
+        if (p.hasPermission("PlayerPoints.set")) {
+            p.sendMessage("/points take <p> <points>");
+        }
+        if (p.hasPermission("PlayerPoints.reset")) {
+            p.sendMessage("/points reset <p>");
+        }
+    }
 }
