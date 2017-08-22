@@ -3,6 +3,7 @@ package org.black_ixx.playerpoints;
 import lombok.val;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -52,7 +53,7 @@ public class CommandExec {
                     }
                 });
             } else {
-                who.sendMessage(ChatColor.RED + "玩家不在线");
+                who.sendMessage(ChatColor.RED + "玩家不存在");
             }
         }),
 
@@ -68,83 +69,71 @@ public class CommandExec {
         }),
 
         TAKE("PlayerPoints.take", (who, i) -> {
-            Player p = Bukkit.getPlayerExact(i.next());
+            OfflinePlayer p = Bukkit.getOfflinePlayer(i.next());
             if (!nil(p)) {
                 int value = Integer.parseInt(i.next());
                 runAsync(() -> {
                     if (PlayerPointsAPI.inst.take(p.getUniqueId(), value)) {
-                        p.sendMessage(ChatColor.GREEN + String.format("你减少%d点券", value));
+                        if(p.isOnline())
+                            ((Player)(p)).sendMessage(ChatColor.GREEN + String.format("你减少%d点券", value));
                         who.sendMessage(ChatColor.GREEN + "操作已完成");
                     } else {
                         who.sendMessage(ChatColor.RED + "操作未完成");
                     }
                 });
             } else {
-                who.sendMessage(ChatColor.RED + "玩家不在线");
+                who.sendMessage(ChatColor.RED + "玩家不存在");
             }
         }),
 
-        TAKE_POINT("PlayerPoints.take", (who, i) -> {
-            Player p = Bukkit.getPlayerExact(i.next());
-            if (!nil(p)) {
-                int value = Integer.parseInt(i.next());
-                runAsync(() -> {
-                    if (PlayerPointsAPI.inst.take(p.getUniqueId(), value, false)) {
-                        p.sendMessage(ChatColor.GREEN + String.format("你减少%d点券", value));
-                        who.sendMessage(ChatColor.GREEN + "操作已完成");
-                    } else {
-                        who.sendMessage(ChatColor.RED + "操作未完成");
-                    }
-                });
-            } else {
-                who.sendMessage(ChatColor.RED + "玩家不在线");
-            }
-        }),
+        TAKE_POINT("PlayerPoints.take", TAKE.func),
 
         LOOK("PlayerPoints.look", (who, i) -> {
-            Player p = Bukkit.getPlayerExact(i.next());
+            OfflinePlayer p = Bukkit.getOfflinePlayer(i.next());
             if (!nil(p)) {
                 runAsync(() -> {
                     int look = PlayerPointsAPI.inst.look(p.getUniqueId());
                     who.sendMessage(ChatColor.GREEN.toString() + look);
                 });
             } else {
-                who.sendMessage(ChatColor.RED + "玩家不在线");
+                who.sendMessage(ChatColor.RED + "玩家不存在");
             }
         }),
 
         PAY("PlayerPoints.pay", (who, i) -> {
             if (!(who instanceof Player)) throw new IllegalStateException("限玩家使用");
-            Player p = Bukkit.getPlayerExact(i.next());
+            OfflinePlayer p = Bukkit.getOfflinePlayer(i.next());
             if (!nil(p)) {
                 int value = Integer.parseInt(i.next());
                 runAsync(() -> {
                     if (PlayerPointsAPI.inst.pay(((Player) who).getUniqueId(), p.getUniqueId(), value)) {
                         who.sendMessage(ChatColor.GREEN + "操作已完成");
-                        p.sendMessage(ChatColor.GREEN + String.format("你收到%d点券", value));
+                        if(p.isOnline())
+                            ((Player)(p)).sendMessage(ChatColor.GREEN + String.format("你收到%d点券", value));
                     } else {
                         who.sendMessage(ChatColor.RED + "操作未完成");
                     }
                 });
             } else {
-                who.sendMessage(ChatColor.RED + "玩家不在线");
+                who.sendMessage(ChatColor.RED + "玩家不存在");
             }
         }),
 
         SET("PlayerPoints.set", (who, i) -> {
-            Player p = Bukkit.getPlayerExact(i.next());
+            OfflinePlayer p = Bukkit.getOfflinePlayer(i.next());
             if (!nil(p)) {
                 int value = i.hasNext() ? Integer.parseInt(i.next()) : 0;
                 runAsync(() -> {
                     if (PlayerPointsAPI.inst.set(p.getUniqueId(), value)) {
                         who.sendMessage(ChatColor.GREEN + "操作已完成");
-                        p.sendMessage(ChatColor.GREEN + String.format("点券被设置成%d点", value));
+                        if(p.isOnline())
+                            ((Player)(p)).sendMessage(ChatColor.GREEN + String.format("点券被设置成%d点", value));
                     } else {
                         who.sendMessage(ChatColor.RED + "操作未完成");
                     }
                 });
             } else {
-                who.sendMessage(ChatColor.RED + "玩家不在线");
+                who.sendMessage(ChatColor.RED + "玩家不存在");
             }
         }),
 
@@ -160,7 +149,9 @@ public class CommandExec {
     }
 
     public static boolean exec(Plugin plugin, CommandSender who, String[] input) {
-        if (input.length == 0) return false;
+        if (input.length == 0){
+            return false;
+        }
         val i = Arrays.asList(input).iterator();
         try {
             Sub lab = Sub.valueOf(i.next().toUpperCase().replace('-', '_'));
