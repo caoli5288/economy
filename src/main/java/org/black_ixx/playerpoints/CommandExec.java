@@ -24,12 +24,13 @@ public class CommandExec {
     private enum Sub {
 
         GIVE("PlayerPoints.give", (who, i) -> {
-            Player p = Bukkit.getPlayerExact(i.next());
+            OfflinePlayer p = Bukkit.getOfflinePlayer(i.next());
             if (!nil(p)) {
                 int value = Integer.parseInt(i.next());
                 runAsync(() -> {
                     if (PlayerPointsAPI.inst.give(p.getUniqueId(), value)) {
-                        p.sendMessage(ChatColor.GREEN + String.format("你收到%d点券", value));
+                        if(p.isOnline())
+                            ((Player)(p)).sendMessage(ChatColor.GREEN + String.format("你收到%d点券", value));
                         who.sendMessage(ChatColor.GREEN + "操作已完成");
                     } else {
                         who.sendMessage(ChatColor.RED + "操作未完成");
@@ -41,12 +42,13 @@ public class CommandExec {
         }),
 
         GIVE_EXTRA("PlayerPoints.give-extra", (who, i) -> {
-            Player p = Bukkit.getPlayerExact(i.next());
+            OfflinePlayer p = Bukkit.getOfflinePlayer(i.next());
             if (!nil(p)) {
                 int value = Integer.parseInt(i.next());
                 runAsync(() -> {
                     if (PlayerPointsAPI.inst.giveExtra(p.getUniqueId(), value)) {
-                        p.sendMessage(ChatColor.GREEN + String.format("你收到%d代券", value));
+                        if(p.isOnline())
+                            ((Player)(p)).sendMessage(ChatColor.GREEN + String.format("你收到%d代券", value));
                         who.sendMessage(ChatColor.GREEN + "操作已完成");
                     } else {
                         who.sendMessage(ChatColor.RED + "操作未完成");
