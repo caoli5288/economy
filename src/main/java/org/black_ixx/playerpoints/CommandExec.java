@@ -8,10 +8,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
-import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.logging.Level;
 
@@ -186,6 +183,7 @@ public class CommandExec {
         sendMessage(who);
         return false;
     }
+
     private static OfflinePlayer getOfflinePlayer(String name){
         for(OfflinePlayer player:Bukkit.getOfflinePlayers()){
             if(player.getName().equalsIgnoreCase(name))return player;
