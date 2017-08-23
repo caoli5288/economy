@@ -8,8 +8,10 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.logging.Level;
 
@@ -24,7 +26,7 @@ public class CommandExec {
     private enum Sub {
 
         GIVE("PlayerPoints.give", (who, i) -> {
-            OfflinePlayer p = Bukkit.getOfflinePlayer(i.next());
+            OfflinePlayer p = getOfflinePlayer(i.next());
             if (!nil(p)) {
                 int value = Integer.parseInt(i.next());
                 runAsync(() -> {
@@ -42,7 +44,7 @@ public class CommandExec {
         }),
 
         GIVE_EXTRA("PlayerPoints.give-extra", (who, i) -> {
-            OfflinePlayer p = Bukkit.getOfflinePlayer(i.next());
+            OfflinePlayer p = getOfflinePlayer(i.next());
             if (!nil(p)) {
                 int value = Integer.parseInt(i.next());
                 runAsync(() -> {
@@ -71,7 +73,7 @@ public class CommandExec {
         }),
 
         TAKE("PlayerPoints.take", (who, i) -> {
-            OfflinePlayer p = Bukkit.getOfflinePlayer(i.next());
+            OfflinePlayer p = getOfflinePlayer(i.next());
             if (!nil(p)) {
                 int value = Integer.parseInt(i.next());
                 runAsync(() -> {
@@ -88,10 +90,25 @@ public class CommandExec {
             }
         }),
 
-        TAKE_POINT("PlayerPoints.take", TAKE.func),
+        TAKE_POINT("PlayerPoints.take", (who, i) -> {
+            Player p = Bukkit.getPlayerExact(i.next());
+            if (!nil(p)) {
+                int value = Integer.parseInt(i.next());
+                runAsync(() -> {
+                    if (PlayerPointsAPI.inst.take(p.getUniqueId(), value, false)) {
+                        p.sendMessage(ChatColor.GREEN + String.format("你减少%d点券", value));
+                        who.sendMessage(ChatColor.GREEN + "操作已完成");
+                    } else {
+                        who.sendMessage(ChatColor.RED + "操作未完成");
+                    }
+                });
+            } else {
+                who.sendMessage(ChatColor.RED + "玩家不在线");
+            }
+        }),
 
         LOOK("PlayerPoints.look", (who, i) -> {
-            OfflinePlayer p = Bukkit.getOfflinePlayer(i.next());
+            OfflinePlayer p = getOfflinePlayer(i.next());
             if (!nil(p)) {
                 runAsync(() -> {
                     int look = PlayerPointsAPI.inst.look(p.getUniqueId());
@@ -104,7 +121,7 @@ public class CommandExec {
 
         PAY("PlayerPoints.pay", (who, i) -> {
             if (!(who instanceof Player)) throw new IllegalStateException("限玩家使用");
-            OfflinePlayer p = Bukkit.getOfflinePlayer(i.next());
+            OfflinePlayer p = getOfflinePlayer(i.next());
             if (!nil(p)) {
                 int value = Integer.parseInt(i.next());
                 runAsync(() -> {
@@ -122,7 +139,7 @@ public class CommandExec {
         }),
 
         SET("PlayerPoints.set", (who, i) -> {
-            OfflinePlayer p = Bukkit.getOfflinePlayer(i.next());
+            OfflinePlayer p = getOfflinePlayer(i.next());
             if (!nil(p)) {
                 int value = i.hasNext() ? Integer.parseInt(i.next()) : 0;
                 runAsync(() -> {
@@ -149,7 +166,6 @@ public class CommandExec {
             this.func = func;
         }
     }
-
     public static boolean exec(Plugin plugin, CommandSender who, String[] input) {
         if (input.length == 0){
             sendMessage(who);
@@ -170,7 +186,12 @@ public class CommandExec {
         sendMessage(who);
         return false;
     }
-
+    private static OfflinePlayer getOfflinePlayer(String name){
+        for(OfflinePlayer player:Bukkit.getOfflinePlayers()){
+            if(player.getName().equalsIgnoreCase(name))return player;
+        }
+        return null;
+    }
     private static void sendMessage(CommandSender p) {
         if (p.hasPermission("PlayerPoints.give")) {
             p.sendMessage("/points give <p> <points>");
