@@ -1,5 +1,6 @@
 package org.black_ixx.playerpoints;
 
+import com.mengcraft.economy.Main;
 import lombok.val;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -36,7 +37,7 @@ public class CommandExec {
                     }
                 });
             } else {
-                who.sendMessage(ChatColor.RED + "玩家不在线");
+                who.sendMessage(ChatColor.RED + "玩家不存在");
             }
         }),
 
@@ -185,10 +186,11 @@ public class CommandExec {
     }
 
     private static OfflinePlayer getOfflinePlayer(String name){
-        for(OfflinePlayer player:Bukkit.getOfflinePlayers()){
-            if(player.getName().equalsIgnoreCase(name))return player;
+        Player P;
+        if(!nil(P=Bukkit.getPlayerExact(name))){
+            return P;
         }
-        return null;
+        return Main.isPpUseOfflinePlayer()?Bukkit.getOfflinePlayer(name):null;
     }
     private static void sendMessage(CommandSender p) {
         if (p.hasPermission("PlayerPoints.give")) {

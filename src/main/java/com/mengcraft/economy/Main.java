@@ -10,6 +10,7 @@ import com.mengcraft.economy.sub.SubPluginLoader;
 import com.mengcraft.simpleorm.EbeanHandler;
 import com.mengcraft.simpleorm.EbeanManager;
 import com.mengcraft.simpleorm.ORM;
+import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.val;
 import net.milkbowl.vault.economy.Economy;
@@ -41,7 +42,7 @@ public class Main extends JavaPlugin {
     private String plural;
     private String singular;
     private EbeanServer database;
-
+    @Getter private static boolean ppUseOfflinePlayer;
     public EbeanServer getDatabase() {
         return database;
     }
@@ -69,7 +70,6 @@ public class Main extends JavaPlugin {
             getLogger().info("Hook to vault!!!");
         }
     }
-
     @SneakyThrows
     @Override
     public void onEnable() {
@@ -95,7 +95,6 @@ public class Main extends JavaPlugin {
 
         plural = getConfig().getString("vault.unit.plural");
         singular = getConfig().getString("vault.unit.singular");
-
         getCommand("money").setExecutor(new Executor(this, manager));
 
         manager.hookQuit();
@@ -106,7 +105,7 @@ public class Main extends JavaPlugin {
             p.setDatabase(database);
             SubPluginLoader.of(this).loadPlugin(p, description);
         }
-
+        ppUseOfflinePlayer=getConfig().getBoolean("pp.offlineplayer",false);
         getLogger().info("梦梦家高性能服务器出租店");
         getLogger().info("shop105595113.taobao.com");
     }
