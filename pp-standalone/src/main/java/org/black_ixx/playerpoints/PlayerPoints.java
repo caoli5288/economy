@@ -22,6 +22,7 @@ public class PlayerPoints extends JavaPlugin {
         if (db.isNotInitialized()) {
             db.define(Log.class);
             db.define(PP.class);
+            db.define(PointRanking.class);
             try {
                 db.initialize();
             } catch (DatabaseException e) {

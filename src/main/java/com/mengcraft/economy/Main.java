@@ -15,6 +15,7 @@ import lombok.val;
 import net.milkbowl.vault.economy.Economy;
 import org.black_ixx.playerpoints.PP;
 import org.black_ixx.playerpoints.PlayerPoints;
+import org.black_ixx.playerpoints.PointRanking;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginDescriptionFile;
@@ -81,6 +82,7 @@ public class Main extends JavaPlugin {
         EbeanHandler db = EbeanManager.DEFAULT.getHandler(this);
         if (!db.isInitialized()) {
             db.define(PP.class);
+            db.define(PointRanking.class);
             db.define(Log.class);
             db.define(User.class);
             try {

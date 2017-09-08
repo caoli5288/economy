@@ -232,13 +232,36 @@ public final class PlayerPointsAPI {
         return set(p.getUniqueId(), amount);
     }
 
-    public void log(OfflinePlayer p, double value, String label, Log.Op operator) {
-        val log = new Log();
-        log.setName(p.getName());
-        log.setValue(value);
-        log.setOperator(operator);
-        log.setLabel(label);
-        db.save(log);
+    public void log(OfflinePlayer p, int value, String label, Log.Op operator) {
+        if (operator == Log.Op.ADD) {
+            int d = Math.abs(value);
+            logRank(p, d == value, d);
+        }
+        val inst = new Log();
+        inst.setName(p.getName());
+        inst.setValue(value);
+        inst.setOperator(operator);
+        inst.setLabel(label);
+        db.insert(inst);
+    }
+
+    public void logRank(OfflinePlayer p, boolean b, int value) {
+        val column = b ? "income" : "consume";
+        val sql = db.createUpdate(PointRanking.class, "update point_ranking set " + column + " = " + column + " + :value , latest_update = now() where id = :id");
+        sql.setParameter("value", value);
+        sql.setParameter("id", p.getUniqueId());
+        int row = sql.execute();
+        if (!(row == 1)) {
+            val inst = new PointRanking();
+            inst.setId(p.getUniqueId());
+            inst.setName(p.getName());
+            if (b) {
+                inst.setIncome(value);
+            } else {
+                inst.setConsume(value);
+            }
+            db.insert(inst);
+        }
     }
 
 }
