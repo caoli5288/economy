@@ -25,4 +25,6 @@ public class PointRanking {
 
     @CreatedTimestamp
     private Timestamp latestUpdate;
+
+    public static final PointRanking EMPTY = new PointRanking();
 }

@@ -1,8 +1,11 @@
 package org.black_ixx.playerpoints;
 
 import com.avaje.ebean.EbeanServer;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.mengcraft.economy.$;
 import com.mengcraft.economy.entity.Log;
+import lombok.SneakyThrows;
 import lombok.val;
 import org.black_ixx.playerpoints.event.PlayerPointsChangeEvent;
 import org.black_ixx.playerpoints.event.PlayerPointsResetEvent;
@@ -11,6 +14,7 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.plugin.Plugin;
 
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import static com.mengcraft.economy.$.nil;
 
@@ -21,6 +25,11 @@ public final class PlayerPointsAPI {
 
     private final EbeanServer db;
     static PlayerPointsAPI inst;
+
+    private final Cache<UUID, PointRanking> rc = CacheBuilder.newBuilder()
+            .expireAfterWrite(1, TimeUnit.MINUTES)
+            .initialCapacity(Bukkit.getMaxPlayers() << 1)
+            .build();
 
     private PlayerPointsAPI(EbeanServer db) {
         this.db = db;
@@ -247,13 +256,14 @@ public final class PlayerPointsAPI {
 
     public void logRank(OfflinePlayer p, boolean b, int value) {
         val column = b ? "income" : "consume";
+        val id = p.getUniqueId();
         val sql = db.createUpdate(PointRanking.class, "update point_ranking set " + column + " = " + column + " + :value , latest_update = now() where id = :id");
         sql.setParameter("value", value);
-        sql.setParameter("id", p.getUniqueId());
+        sql.setParameter("id", id);
         int row = sql.execute();
-        if (!(row == 1)) {
+        if (row == 0) {
             val inst = new PointRanking();
-            inst.setId(p.getUniqueId());
+            inst.setId(id);
             inst.setName(p.getName());
             if (b) {
                 inst.setIncome(value);
@@ -262,6 +272,19 @@ public final class PlayerPointsAPI {
             }
             db.insert(inst);
         }
+        rc.invalidate(id);
+    }
+
+    /**
+     * @param p the player's id
+     * @return {@link PointRanking} object in cache pool
+     */
+    @SneakyThrows
+    public PointRanking getRank(OfflinePlayer p) {
+        return rc.get(p.getUniqueId(), () -> {
+            val ranking = db.find(PointRanking.class, p.getUniqueId());
+            return ranking == null ? PointRanking.EMPTY : ranking;
+        });
     }
 
 }

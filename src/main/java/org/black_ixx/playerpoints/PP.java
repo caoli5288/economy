@@ -1,12 +1,12 @@
 package org.black_ixx.playerpoints;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
-import java.util.Objects;
 import java.util.UUID;
 
 import static org.black_ixx.playerpoints.PP.TABLE_NAME;
@@ -16,6 +16,7 @@ import static org.black_ixx.playerpoints.PP.TABLE_NAME;
  */
 @Data
 @Entity
+@EqualsAndHashCode(of = "who")
 @Table(name = TABLE_NAME)
 public class PP {
 
@@ -30,19 +31,6 @@ public class PP {
 
     @Column(nullable = false)
     private int extra;
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof PP)) return false;
-        PP pp = (PP) o;
-        return Objects.equals(getWho(), pp.getWho());
-    }
-
-    @Override
-    public int hashCode() {
-        return getWho().hashCode();
-    }
 
     public int getAll() {
         return getValue() + getExtra();

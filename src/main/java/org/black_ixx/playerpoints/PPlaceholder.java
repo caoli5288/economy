@@ -21,7 +21,9 @@ public class PPlaceholder extends EZPlaceholderHook {
     enum Sub {
 
         ALL((api, p) -> "" + api.lookAll(p.getUniqueId())),
-        EXTRA((api, p) -> "" + api.lookExtra(p.getUniqueId()));
+        EXTRA((api, p) -> "" + api.lookExtra(p.getUniqueId())),
+        RANK_INCOME((api, p) -> "" + api.getRank(p).getIncome()),
+        RANK_CONSUME((api, p) -> "" + api.getRank(p).getConsume());
 
         private final IExec exec;
 
