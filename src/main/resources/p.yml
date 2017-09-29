@@ -8,10 +8,8 @@ softdepend: [Votifier, SQLibrary, Vault]
 commands:
   points:
    description: Root command for PlayerPoints
-   usage: /points <param>
   p:
    description: the same as /points
-   usage: /p <param>
 permissions:
     PlayerPoints.*:
         description: Gives access to all PlayerPoints commands
