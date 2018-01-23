@@ -5,7 +5,7 @@ version: 2.1.5-SNAPSHOT
 author: Black_ixx
 website: http://felix.neuby.de
 depend: [SimpleORM]
-softdepend: [Votifier, SQLibrary, Vault]
+softdepend: [Votifier, SQLibrary, Vault, KPointx]
 commands:
   points:
    description: Root command for PlayerPoints

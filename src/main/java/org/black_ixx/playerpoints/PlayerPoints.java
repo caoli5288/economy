@@ -1,9 +1,12 @@
 package org.black_ixx.playerpoints;
 
 import com.avaje.ebean.EbeanServer;
+import com.kuai8.mc.kuai8point.Kuai8Point;
 import com.mengcraft.economy.sub.SubPlugin;
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.plugin.java.JavaPlugin;
 
 /**
  * Created on 17-6-26.
@@ -28,6 +31,13 @@ public class PlayerPoints extends SubPlugin {
     @Override
     public void onEnable() {
         PlayerPointsAPI.init(this, getDatabase());
+        try {
+            Kuai8Point plugin = JavaPlugin.getPlugin(Kuai8Point.class);
+            Bukkit.getPluginManager().registerEvents(new K8(plugin), getParent());
+            getLogger().info("Hook kuaiba point plugin");
+        } catch (Exception ignore) {
+            getLogger().info("Kuaiba point plugin NOT found");
+        }
     }
 
     @Override

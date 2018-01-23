@@ -5,8 +5,10 @@ import com.mengcraft.economy.entity.Log;
 import com.mengcraft.simpleorm.DatabaseException;
 import com.mengcraft.simpleorm.EbeanManager;
 import lombok.val;
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /**
@@ -33,6 +35,13 @@ public class PlayerPoints extends JavaPlugin {
         }
         database = db.getServer();
         PlayerPointsAPI.init(this, database);
+
+        Plugin plugin = Bukkit.getPluginManager().getPlugin("KPointx");
+        if (!(plugin == null)) {
+            Bukkit.getPluginManager().registerEvents(new K8(plugin), this);
+            getLogger().info("Hook kuaiba point plugin");
+        }
+
     }
 
     @Override
